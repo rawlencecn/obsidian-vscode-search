@@ -1,8 +1,222 @@
-/*
+.esr-search-panel {
+	background-color: var(--background-primary);
+	border-bottom: 1px solid var(--divider-color);
+	padding: 8px 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	--esr-input-width: 400px;
+	/* 确保在顶部时不会被内容覆盖 */
+	z-index: 10;
+}
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+/* 防止被 Obsidian 主题的 button 样式覆盖：默认纯图标/文字，无背景无边框 */
+.esr-search-panel button {
+	-webkit-appearance: none;
+	appearance: none;
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	padding: 0;
+	margin: 0;
+}
 
-If your plugin does not need CSS, delete this file.
+.esr-search-panel button:focus {
+	outline: none;
+}
 
-*/
+.esr-search-panel button:focus-visible {
+	outline: 2px solid var(--interactive-accent);
+	outline-offset: 1px;
+}
+
+.esr-search-row {
+	display: grid;
+	grid-template-columns: minmax(200px, var(--esr-input-width)) auto 28px;
+	align-items: center;
+	column-gap: 8px;
+}
+
+.esr-input-wrap {
+	position: relative;
+	width: 100%;
+}
+
+.esr-input-actions {
+	position: absolute;
+	right: 6px;
+	top: 50%;
+	transform: translateY(-50%);
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.esr-row-controls {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 8px;
+}
+
+.esr-row-end {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+}
+
+.esr-search-input {
+	flex: 0 0 auto;
+	min-width: 150px;
+	width: 100%;
+	padding: 6px 8px;
+	padding-right: 148px;
+	border: 1px solid var(--border-color);
+	border-radius: 4px;
+	background-color: var(--background-primary);
+	color: var(--text-normal);
+	font-size: 14px;
+	outline: none;
+}
+
+.esr-search-input:focus {
+	border-color: var(--interactive-accent);
+}
+
+.esr-toggle-container {
+	display: flex;
+	gap: 4px;
+}
+
+.esr-toggle-container-inline {
+	gap: 2px;
+}
+
+.esr-toggle-btn {
+	padding: 4px 8px;
+	border-radius: 4px;
+	color: var(--text-muted);
+	font-size: 11px;
+	cursor: pointer;
+	font-weight: 400;
+	min-width: 34px;
+	text-align: center;
+}
+
+.esr-toggle-btn:hover {
+	background-color: var(--background-modifier-hover) !important;
+	color: var(--text-normal);
+}
+
+.esr-toggle-btn.active {
+	/* 激活态不铺底，只改变前景色 */
+	background-color: transparent !important;
+	color: var(--interactive-accent);
+}
+
+.esr-toggle-btn:active {
+	background-color: var(--background-modifier-active) !important;
+}
+
+.esr-nav-container {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.esr-icon-btn,
+.esr-replace-btns button {
+	padding: 4px 10px;
+	border-radius: 4px;
+	color: var(--text-muted);
+	font-size: 12px;
+	cursor: pointer;
+	min-width: 34px;
+	text-align: center;
+}
+
+/* 上/下箭头更大 */
+.esr-btn-prev,
+.esr-btn-next {
+	font-size: 16px;
+}
+
+/* 清空按钮更小 */
+.esr-clear-btn {
+	min-width: 18px;
+	width: 18px;
+	height: 18px;
+	padding: 0;
+	border-radius: 4px;
+	font-size: 14px;
+	line-height: 1;
+}
+
+.esr-clear-btn:hover {
+	background-color: var(--background-modifier-hover) !important;
+}
+
+/* Replace / Replace All 默认显示背景 */
+.esr-replace-btns .esr-icon-btn {
+	background-color: var(--background-secondary) !important;
+	color: var(--text-normal);
+}
+
+.esr-icon-btn:hover,
+.esr-replace-btns button:hover {
+	background-color: var(--background-modifier-hover) !important;
+	color: var(--text-normal);
+}
+
+.esr-icon-btn:active,
+.esr-replace-btns button:active {
+	background-color: var(--background-modifier-active) !important;
+}
+
+.esr-match-count {
+	font-size: 12px;
+	color: var(--text-muted);
+	min-width: 70px;
+	text-align: center;
+}
+
+.esr-match-count.is-empty {
+	color: var(--text-error);
+}
+
+.esr-replace-btns {
+	display: flex;
+	gap: 4px;
+}
+
+.esr-close-btn {
+	width: 28px;
+	height: 28px;
+	border-radius: 4px;
+	color: var(--text-muted);
+	font-size: 20px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	line-height: 1;
+	padding: 0;
+}
+
+.esr-close-btn:hover {
+	background-color: var(--background-modifier-hover) !important;
+	color: var(--text-normal);
+}
+
+.esr-close-btn:active {
+	background-color: var(--background-modifier-active) !important;
+}
+
+.cm-line .esr-highlight {
+	background-color: rgba(255, 203, 0, 0.4);
+}
+
+.cm-line .esr-highlight-active {
+	background-color: rgba(255, 153, 0, 0.7);
+	outline: 1px solid rgba(255, 128, 0, 0.9);
+}

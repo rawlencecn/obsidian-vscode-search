@@ -1,11 +1,11 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
+	"id": "enhanced-search-replace",
+	"name": "Enhanced search and replace",
 	"version": "1.0.0",
-	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
-	"isDesktopOnly": false
+	"minAppVersion": "1.12.7",
+	"description": "Inline editor search and replace panel with match case, whole word, and regex.",
+	"author": "Liu Hao",
+	"authorUrl": "https://github.com/liuhaoxd",
+	"fundingUrl": "",
+	"isDesktopOnly": true
 }
