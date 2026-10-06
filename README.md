@@ -1,37 +1,39 @@
-# Enhanced search and replace
+# VSCode Search
 
 [中文 README](README_zh.md)
 
-An inline editor search and replace panel for Obsidian.
+A VS Code style find and replace widget for the Obsidian editor.
+
+Based on [Enhanced search and replace](https://github.com/liuhaoxd/obsidian-enhanced-search-replace) by Liu Hao (Apache-2.0).
 
 ## Features
 
-- Inline find panel in the editor.
-- Find and replace mode.
-- Match case, whole word, and regex.
-- Highlights matches in the current editor.
-- `Esc` closes the panel globally (even when the input is not focused).
-- VS Code keybindings while the editor or the panel is focused (see below).
-- Works in reading view: the note switches to editing view while the panel is open and switches back when it closes. Text selected in reading view pre-fills the search box.
+- **Floating widget** in the top-right corner of the editor, like VS Code. It overlays the note instead of pushing the text down.
+- Match case, match whole word and regular expression toggles inside the search box.
+- Collapsible replace row (the chevron on the left), with replace and replace all.
+- Highlights all matches and shows `n of total`.
+- **VS Code keybindings** while the editor or the widget is focused (see below).
+- **Works in reading view**: the note switches to editing view while the widget is open and switches back when it closes. Text selected in reading view pre-fills the search box.
+- Vim mode aware: `Esc` in insert or visual mode goes to Vim first; `Esc` in normal mode closes the widget.
 
-## Hotkeys
+## Commands
 
-Bind hotkeys for this plugin via Obsidian settings:
+Bind them in **Settings → Hotkeys** (search for `VSCode Search`):
 
-1. Open **Settings → Hotkeys**.
-2. Search `Enhanced search and replace` (or just `Find`).
-3. Bind these commands:
-   - `Enhanced search and replace: Find`
-   - `Enhanced search and replace: Find and replace`
-   - Optional: `Find next`, `Find previous`, `Toggle match case`, `Toggle match whole word`, `Toggle use regular expression`
+| Command | Suggested hotkey (macOS) |
+| --- | --- |
+| `Find` | `Cmd+F` (replaces **Search current file**) |
+| `Find and replace` | `Alt+Cmd+F` (replaces **Search & replace current file**) |
+| `Find next` / `Find previous` | optional |
+| `Toggle match case` / `Toggle match whole word` / `Toggle use regular expression` | optional |
 
-Suggested defaults:
-- Windows / Linux: `Ctrl+F` → Find, `Ctrl+H` → Find and replace
-- macOS: `Cmd+F` → Find (set the other one to your preference)
+On Windows / Linux, use `Ctrl+F` and `Ctrl+H`.
 
-### Built-in VS Code keybindings
+Remove the built-in binding when you assign the same key, otherwise Obsidian runs whichever command it finds first.
 
-These work out of the box while the panel is open and the focus is in the editor or the panel. They take precedence over global hotkeys bound to the same keys (for example `Cmd+G` → **Open graph view**) only in that situation.
+## Built-in VS Code keybindings
+
+These work without any setup while the widget is open and the focus is in the editor or the widget. In that situation they take precedence over global hotkeys on the same keys (for example `Cmd+G` → **Open graph view**). Everywhere else, the global hotkeys are untouched.
 
 | Action | macOS | Windows / Linux |
 | --- | --- | --- |
@@ -40,33 +42,30 @@ These work out of the box while the panel is open and the focus is in the editor
 | Toggle match case | `Alt+Cmd+C` | `Alt+C` |
 | Toggle match whole word | `Alt+Cmd+W` | `Alt+W` |
 | Toggle regular expression | `Alt+Cmd+R` | `Alt+R` |
-| Replace (replace mode) | `Shift+Cmd+1` | `Shift+Ctrl+1` |
-| Replace all (replace mode) | `Alt+Cmd+Enter` | `Alt+Ctrl+Enter` |
+| Replace (replace row open) | `Shift+Cmd+1` | `Shift+Ctrl+1` |
+| Replace all (replace row open) | `Alt+Cmd+Enter` | `Alt+Ctrl+Enter` |
+| Close | `Esc` | `Esc` |
 
-Running **Find** again while the panel is open moves the focus back to the search box. **Find next** / **Find previous** open the panel (pre-filled with the selection) when it is closed.
+Behaviour that matches VS Code:
 
-You can also trigger via Command Palette: `Cmd/Ctrl+P` and search `Enhanced search and replace: Find`.
+- Running **Find** again while the widget is open moves the focus back to the search box.
+- **Find and replace** with a search term focuses the replace box.
+- **Find next** / **Find previous** open the widget pre-filled with the selection when it is closed.
+- When the selected text is a match, it is the current match.
 
 ## Install (manual)
 
-- Copy `main.js`, `manifest.json`, and `styles.css` to:
-  - `<Vault>/.obsidian/plugins/enhanced-search-replace/`
-- Reload Obsidian and enable the plugin.
+Copy `main.js`, `manifest.json` and `styles.css` to `<Vault>/.obsidian/plugins/vscode-search/`, then enable **VSCode Search** in **Settings → Community plugins**.
 
 ## Development
 
 ```bash
 npm install
-npm run dev
+npm run dev     # watch
+npm run build   # type check + production build
+npm run lint
 ```
 
-## Build
+## License
 
-```bash
-npm run build
-```
-
-## Notes
-
-- The search UI is implemented as a CodeMirror 6 panel.
-- Some internal editor fields (like the underlying CodeMirror view) are accessed via Obsidian runtime objects.
+Apache-2.0. This project is a modified version of Enhanced search and replace; see [LICENSE](LICENSE).
