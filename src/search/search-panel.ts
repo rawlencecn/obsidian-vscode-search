@@ -1,5 +1,8 @@
+import {App} from 'obsidian';
 import {showPanel, Panel, EditorView} from '@codemirror/view';
 import {searchStateField, setSearchQuery, setCurrentMatch, togglePanel, closeSearch} from './search-state';
+import {goToNext, goToPrev, replaceAll, replaceCurrent, toggleOption} from './search-actions';
+import {attachSearchKeymap} from './search-keymap';
 import {SearchState} from '../types';
 
 function createToggleButton(container: HTMLElement, text: string, cls: string, title: string): HTMLButtonElement {
@@ -14,7 +17,7 @@ function createIconButton(container: HTMLElement, icon: string, cls: string, tit
 	return btn;
 }
 
-function createSearchPanel(view: EditorView): Panel {
+function createSearchPanel(app: App, view: EditorView): Panel {
 	const dom = document.createElement('div');
 	dom.className = 'esr-search-panel';
 
@@ -22,65 +25,6 @@ function createSearchPanel(view: EditorView): Panel {
 
 	const updateQuery = (newQuery: Parameters<typeof setSearchQuery.of>[0]) => {
 		view.dispatch({effects: setSearchQuery.of(newQuery)});
-	};
-
-	const goToNext = () => {
-		const state = view.state.field(searchStateField);
-		if (state.matches.length > 0) {
-			const nextIndex = (state.currentMatchIndex + 1) % state.matches.length;
-			view.dispatch({effects: setCurrentMatch.of(nextIndex)});
-			const match = state.matches[nextIndex];
-			if (match) {
-				view.dispatch({selection: {anchor: match.from, head: match.to}});
-				view.dispatch({effects: EditorView.scrollIntoView(view.state.selection.main, {y: 'center'})});
-			}
-		}
-	};
-
-	const goToPrev = () => {
-		const state = view.state.field(searchStateField);
-		if (state.matches.length > 0) {
-			const prevIndex = (state.currentMatchIndex - 1 + state.matches.length) % state.matches.length;
-			view.dispatch({effects: setCurrentMatch.of(prevIndex)});
-			const match = state.matches[prevIndex];
-			if (match) {
-				view.dispatch({selection: {anchor: match.from, head: match.to}});
-				view.dispatch({effects: EditorView.scrollIntoView(view.state.selection.main, {y: 'center'})});
-			}
-		}
-	};
-
-	const replaceCurrent = () => {
-		const state = view.state.field(searchStateField);
-		const match = state.matches[state.currentMatchIndex];
-		if (match) {
-			const currentIndex = state.currentMatchIndex;
-			view.dispatch({changes: {from: match.from, to: match.to, insert: state.query.replaceTerm}});
-
-			// 替换会触发 matches 重算；此时“下一个匹配”通常会落在原 index 位置。
-			const newState = view.state.field(searchStateField);
-			if (newState.matches.length === 0) return;
-			const nextIndex = Math.min(Math.max(currentIndex, 0), newState.matches.length - 1);
-			view.dispatch({effects: setCurrentMatch.of(nextIndex)});
-
-			const nextMatch = newState.matches[nextIndex];
-			if (nextMatch) {
-				view.dispatch({selection: {anchor: nextMatch.from, head: nextMatch.to}});
-				view.dispatch({effects: EditorView.scrollIntoView(view.state.selection.main, {y: 'center'})});
-			}
-		}
-	};
-
-	const replaceAll = () => {
-		const state = view.state.field(searchStateField);
-		const changes = state.matches.map(m => ({
-			from: m.from,
-			to: m.to,
-			insert: state.query.replaceTerm
-		}));
-		if (changes.length > 0) {
-			view.dispatch({changes});
-		}
 	};
 
 	const close = () => {
@@ -175,9 +119,9 @@ function createSearchPanel(view: EditorView): Panel {
 		if (e.key === 'Enter') {
 			e.preventDefault();
 			if (e.shiftKey) {
-				goToPrev();
+				goToPrev(view);
 			} else {
-				goToNext();
+				goToNext(view);
 			}
 		} else if (e.key === 'Escape') {
 			e.preventDefault();
@@ -196,26 +140,18 @@ function createSearchPanel(view: EditorView): Panel {
 		}
 	});
 
-	caseSensitiveBtn.addEventListener('click', () => {
-		caseSensitiveBtn.classList.toggle('active');
-		updateQuery({caseSensitive: caseSensitiveBtn.classList.contains('active')});
-	});
+	// 按钮的 active 状态由 update() 根据 state 同步，这里只负责切换 state。
+	caseSensitiveBtn.addEventListener('click', () => toggleOption(view, 'caseSensitive'));
+	wholeWordBtn.addEventListener('click', () => toggleOption(view, 'wholeWord'));
+	regexBtn.addEventListener('click', () => toggleOption(view, 'useRegex'));
 
-	wholeWordBtn.addEventListener('click', () => {
-		wholeWordBtn.classList.toggle('active');
-		updateQuery({wholeWord: wholeWordBtn.classList.contains('active')});
-	});
-
-	regexBtn.addEventListener('click', () => {
-		regexBtn.classList.toggle('active');
-		updateQuery({useRegex: regexBtn.classList.contains('active')});
-	});
-
-	prevBtn.addEventListener('click', goToPrev);
-	nextBtn.addEventListener('click', goToNext);
-	replaceBtn.addEventListener('click', replaceCurrent);
-	replaceAllBtn.addEventListener('click', replaceAll);
+	prevBtn.addEventListener('click', () => goToPrev(view));
+	nextBtn.addEventListener('click', () => goToNext(view));
+	replaceBtn.addEventListener('click', () => replaceCurrent(view));
+	replaceAllBtn.addEventListener('click', () => replaceAll(view));
 	closeBtn.addEventListener('click', close);
+
+	const detachKeymap = attachSearchKeymap(app, view);
 
 	return {
 		dom,
@@ -247,16 +183,31 @@ function createSearchPanel(view: EditorView): Panel {
 				regexBtn.classList.toggle('active', newState.query.useRegex);
 				updateMatchCount();
 			}
+
+			// 面板已打开时再次触发 Find / Find and replace：与 VS Code 一致，焦点回到搜索框并全选。
+			const reopened = update.transactions.some((tr) =>
+				tr.effects.some((e) => e.is(togglePanel) && e.value.visible)
+			);
+			if (reopened) {
+				searchInput.focus();
+				searchInput.select();
+			}
 		},
 		mount() {
 			searchInput.focus();
 			searchInput.select();
+		},
+		destroy() {
+			detachKeymap();
 		}
 	};
 }
 
-export const searchPanelExtension = showPanel.compute([searchStateField], (state) => {
-	const searchState = state.field(searchStateField);
-	if (!searchState.panelVisible) return null;
-	return createSearchPanel;
-});
+export function createSearchPanelExtension(app: App) {
+	const create = (view: EditorView) => createSearchPanel(app, view);
+	return showPanel.compute([searchStateField], (state) => {
+		const searchState = state.field(searchStateField);
+		if (!searchState.panelVisible) return null;
+		return create;
+	});
+}

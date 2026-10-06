@@ -1,7 +1,9 @@
 import {Plugin, MarkdownView} from 'obsidian';
 import {StateEffect} from '@codemirror/state';
+import {EditorView} from '@codemirror/view';
 import {togglePanel, setSearchQuery, searchStateField} from './search-state';
 import {forgetReadingViewSwitch, getReadingViewSelection, switchToEditingView} from './reading-view';
+import {goToNext, goToPrev, revealMatch, SearchOption, toggleOption} from './search-actions';
 import {ObsidianEditor, ObsidianApp} from '../types';
 
 async function openSearchPanel(plugin: Plugin, showReplace: boolean) {
@@ -41,6 +43,41 @@ async function openSearchPanel(plugin: Plugin, showReplace: boolean) {
 	}
 }
 
+/** 当前处于编辑视图、且搜索面板已打开的编辑器。 */
+function getEditorWithOpenPanel(plugin: Plugin): EditorView | null {
+	const activeView = plugin.app.workspace.getActiveViewOfType(MarkdownView);
+	if (!activeView || activeView.getMode() !== 'source') return null;
+	const cmView = (activeView.editor as ObsidianEditor).cm;
+	if (!cmView || !cmView.state.field(searchStateField).panelVisible) return null;
+	return cmView;
+}
+
+/** 与 VS Code 一致：面板未打开时先打开面板（用选区预填），并跳到最近的匹配。 */
+async function findNextOrPrevious(plugin: Plugin, direction: 'next' | 'previous') {
+	const cmView = getEditorWithOpenPanel(plugin);
+	if (cmView) {
+		if (direction === 'next') goToNext(cmView);
+		else goToPrev(cmView);
+		return;
+	}
+
+	await openSearchPanel(plugin, false);
+	const opened = getEditorWithOpenPanel(plugin);
+	if (!opened) return;
+	const state = opened.state.field(searchStateField);
+	const current = state.matches[state.currentMatchIndex];
+	if (!current) return;
+
+	// 当前匹配是光标之后（或选区本身）的第一个：
+	// - 向后：选区本身就是当前匹配时跳到下一个，否则跳到当前匹配；
+	// - 向前：总是跳到它前面那一个。
+	const selection = opened.state.selection.main;
+	const selectionIsCurrent = current.from === selection.from && current.to === selection.to;
+	if (direction === 'previous') goToPrev(opened);
+	else if (selectionIsCurrent) goToNext(opened);
+	else revealMatch(opened, state.currentMatchIndex);
+}
+
 export function registerSearchCommands(plugin: Plugin) {
 
 	plugin.addCommand({
@@ -65,6 +102,44 @@ export function registerSearchCommands(plugin: Plugin) {
 			return true;
 		}
 	});
+
+	plugin.addCommand({
+		id: 'find-next',
+		name: 'Find next',
+		checkCallback: (checking: boolean) => {
+			if (!plugin.app.workspace.getActiveViewOfType(MarkdownView)) return false;
+			if (!checking) void findNextOrPrevious(plugin, 'next');
+			return true;
+		}
+	});
+
+	plugin.addCommand({
+		id: 'find-previous',
+		name: 'Find previous',
+		checkCallback: (checking: boolean) => {
+			if (!plugin.app.workspace.getActiveViewOfType(MarkdownView)) return false;
+			if (!checking) void findNextOrPrevious(plugin, 'previous');
+			return true;
+		}
+	});
+
+	const toggleCommands: {id: string; name: string; option: SearchOption}[] = [
+		{id: 'toggle-match-case', name: 'Toggle match case', option: 'caseSensitive'},
+		{id: 'toggle-whole-word', name: 'Toggle match whole word', option: 'wholeWord'},
+		{id: 'toggle-regex', name: 'Toggle use regular expression', option: 'useRegex'},
+	];
+	for (const {id, name, option} of toggleCommands) {
+		plugin.addCommand({
+			id,
+			name,
+			checkCallback: (checking: boolean) => {
+				const cmView = getEditorWithOpenPanel(plugin);
+				if (!cmView) return false;
+				if (!checking) toggleOption(cmView, option);
+				return true;
+			}
+		});
+	}
 
 	// 额外校验：打印当前已注册的命令 key（方便确认 Obsidian 是否真正收到了命令）。
 	try {

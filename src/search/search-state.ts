@@ -35,8 +35,10 @@ export const searchStateField = StateField.define<SearchState>({
 			} else if (effect.is(setSearchQuery)) {
 				const nextQuery: SearchQuery = {...newState.query, ...effect.value};
 				const matches = findMatches(tr.state.doc.toString(), nextQuery);
+				// 从选区起点开始找：选中的文本本身就是匹配时，它就是当前匹配（与 VS Code 一致）。
+				// 用 head（选区终点）会跳过选中的那一处，导致计数与选区错位、Enter 跳过一个匹配。
 				const currentMatchIndex = matches.length > 0
-					? findNearestMatchIndex(matches, tr.state.selection.main.head)
+					? findNearestMatchIndex(matches, tr.state.selection.main.from)
 					: -1;
 				newState = {...newState, query: nextQuery, matches, currentMatchIndex};
 			} else if (effect.is(setCurrentMatch)) {
