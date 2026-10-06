@@ -2,13 +2,14 @@ import {MarkdownView, Plugin} from 'obsidian';
 import {closeSearch, searchExtension, searchStateField} from './search/search-state';
 import {searchPanelExtension} from './search/search-panel';
 import {registerSearchCommands} from './search/search-commands';
+import {restoreReadingViewOnClose} from './search/reading-view';
 import {ObsidianEditor} from './types';
 
 export default class EnhancedSearchReplacePlugin extends Plugin {
 
 	onload() {
 
-		this.registerEditorExtension([searchExtension(), searchPanelExtension]);
+		this.registerEditorExtension([searchExtension(), searchPanelExtension, restoreReadingViewOnClose]);
 
 		registerSearchCommands(this);
 

@@ -11,6 +11,7 @@ An inline editor search and replace panel for Obsidian.
 - Match case, whole word, and regex.
 - Highlights matches in the current editor.
 - `Esc` closes the panel globally (even when the input is not focused).
+- Works in reading view: the note switches to editing view while the panel is open and switches back when it closes. Text selected in reading view pre-fills the search box.
 
 ## Hotkeys
 

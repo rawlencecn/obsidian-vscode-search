@@ -1,9 +1,10 @@
-import {Plugin, Editor, MarkdownView} from 'obsidian';
+import {Plugin, MarkdownView} from 'obsidian';
 import {StateEffect} from '@codemirror/state';
-import {togglePanel, setSearchQuery} from './search-state';
+import {togglePanel, setSearchQuery, searchStateField} from './search-state';
+import {forgetReadingViewSwitch, getReadingViewSelection, switchToEditingView} from './reading-view';
 import {ObsidianEditor, ObsidianApp} from '../types';
 
-function openSearchPanel(plugin: Plugin, showReplace: boolean) {
+async function openSearchPanel(plugin: Plugin, showReplace: boolean) {
 	const activeView = plugin.app.workspace.getActiveViewOfType(MarkdownView);
 	if (!activeView) {
 		console.error('Enhanced Search Replace: 没有活动的 Markdown 视图');
@@ -13,7 +14,17 @@ function openSearchPanel(plugin: Plugin, showReplace: boolean) {
 	const editor = activeView.editor;
 	const cmView = (editor as ObsidianEditor).cm;
 	if (cmView) {
-		const selection = editor.getSelection();
+		let selection: string;
+		if (activeView.getMode() === 'preview') {
+			// 阅读视图下编辑器被隐藏，面板无法显示：先切到编辑视图，关闭面板时再切回。
+			selection = getReadingViewSelection(activeView);
+			await switchToEditingView(activeView, cmView);
+		} else {
+			selection = editor.getSelection();
+			if (!cmView.state.field(searchStateField).panelVisible) {
+				forgetReadingViewSwitch(cmView);
+			}
+		}
 
 		// 合并为一次 dispatch：保证面板创建时就能读到最新 query，且避免 UI 需要额外交互才刷新。
 		const effects: StateEffect<unknown>[] = [togglePanel.of({visible: true, showReplace})];
@@ -37,22 +48,21 @@ export function registerSearchCommands(plugin: Plugin) {
 		// 这里不要再手动拼 "pluginId:xxx"，否则可能导致命令面板里不可见/不可检索。
 		id: 'find',
 		name: 'Find',
-		callback: () => {
-			openSearchPanel(plugin, false);
-		},
-		editorCallback: (editor: Editor, view: MarkdownView) => {
-			openSearchPanel(plugin, false);
+		// 用 checkCallback 而不是 editorCallback：editorCallback 在阅读视图下不可用。
+		checkCallback: (checking: boolean) => {
+			if (!plugin.app.workspace.getActiveViewOfType(MarkdownView)) return false;
+			if (!checking) void openSearchPanel(plugin, false);
+			return true;
 		}
 	});
 
 	plugin.addCommand({
 		id: 'find-and-replace',
 		name: 'Find and replace',
-		callback: () => {
-			openSearchPanel(plugin, true);
-		},
-		editorCallback: (editor: Editor, view: MarkdownView) => {
-			openSearchPanel(plugin, true);
+		checkCallback: (checking: boolean) => {
+			if (!plugin.app.workspace.getActiveViewOfType(MarkdownView)) return false;
+			if (!checking) void openSearchPanel(plugin, true);
+			return true;
 		}
 	});
 
