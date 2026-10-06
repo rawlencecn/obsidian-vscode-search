@@ -170,6 +170,7 @@ function createSearchPanel(app: App, view: EditorView): Panel {
 	});
 
 	const detachKeymap = attachSearchKeymap(app, view);
+	let panelsHost: HTMLElement | null = null;
 
 	return {
 		dom,
@@ -208,9 +209,13 @@ function createSearchPanel(app: App, view: EditorView): Panel {
 			if (reopened) focusInput();
 		},
 		mount() {
+			// 记下容器引用：destroy 时面板可能已从容器中移除，parentElement 会是 null。
+			panelsHost = dom.parentElement;
+			panelsHost?.addClass('vss-panels-host');
 			focusInput();
 		},
 		destroy() {
+			panelsHost?.removeClass('vss-panels-host');
 			detachKeymap();
 		}
 	};

@@ -20,8 +20,8 @@
 	font-size: var(--font-ui-small);
 }
 
-/* panel 容器只剩浮窗时，去掉它自带的分隔线 */
-.cm-panels.cm-panels-top:has(> .vss-search-panel) {
+/* 浮窗挂载时给 panel 容器加上 vss-panels-host，去掉 CodeMirror 自带的下边框（容器高度为 0，否则会在编辑器顶部留一条线） */
+.cm-panels.cm-panels-top.vss-panels-host {
 	border-bottom: none;
 }
 
@@ -39,8 +39,8 @@
 	gap: 4px;
 }
 
-.vss-hidden {
-	display: none !important;
+.vss-search-panel .vss-hidden {
+	display: none;
 }
 
 .vss-search-panel .vss-invisible {
