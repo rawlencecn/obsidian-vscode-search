@@ -11,6 +11,7 @@ Based on [Enhanced search and replace](https://github.com/liuhaoxd/obsidian-enha
 ## Features
 
 - **Floating widget** in the top-right corner of the editor, like VS Code. It overlays the note instead of pushing the text down.
+- **Movable and resizable.** Drag any empty part of the widget (for example the match count) to move it out of the way, and drag its left edge to change the width, like VS Code. The position and width are shared by all notes and by reading and editing view, are remembered across restarts, and the widget always stays inside the note area. Double-click an empty part to put it back in the top-right corner; double-click the left edge to switch between the default width and a wide one.
 - Match case, match whole word and regular expression toggles inside the search box.
 - Collapsible replace row (the chevron on the left), with replace and replace all.
 - Highlights all matches and shows `n of total`.
@@ -55,9 +56,11 @@ Behaviour that matches VS Code:
 - **Find next** / **Find previous** open the widget pre-filled with the selection when it is closed.
 - When the selected text is a match, it is the current match.
 
-## Install (manual)
+## Install
 
-Copy `main.js`, `manifest.json` and `styles.css` to `<Vault>/.obsidian/plugins/vscode-search/`, then enable **VSCode Search** in **Settings → Community plugins**.
+In Obsidian, open **Settings → Community plugins → Browse** and search for **VSCode Search**.
+
+Manual install: copy `main.js`, `manifest.json` and `styles.css` to `<Vault>/.obsidian/plugins/vscode-search/`, then enable **VSCode Search** in **Settings → Community plugins**.
 
 ## Development
 

@@ -4,6 +4,7 @@ import {findMatches} from './search-logic';
 import {SearchOption} from './search-actions';
 import {SearchWidget} from './search-widget';
 import {attachSearchKeymap} from './search-keymap';
+import {attachPanelLayout, PanelLayoutStore} from './panel-layout';
 
 /**
  * 阅读视图里的查找：不切换到编辑视图，直接在渲染后的页面上高亮。
@@ -83,6 +84,7 @@ export class ReadingSearch {
 	private readonly host: HTMLElement;
 	private readonly file: TFile | null;
 	private readonly detachKeymap: () => void;
+	private readonly detachLayout: () => void;
 	private readonly resizeObserver: ResizeObserver;
 
 	private query: SearchQuery;
@@ -101,6 +103,7 @@ export class ReadingSearch {
 		readonly view: MarkdownView,
 		readonly renderer: PreviewRenderer,
 		options: Pick<SearchQuery, SearchOption>,
+		layout: PanelLayoutStore,
 		private readonly callbacks: ReadingSearchCallbacks,
 		private readonly onClosed: () => void,
 	) {
@@ -126,6 +129,8 @@ export class ReadingSearch {
 
 		this.host.addClass('vss-reading-host');
 		this.host.appendChild(this.widget.dom);
+		// 浮窗限制在正文的滚动区域内（不盖住滚动条）。
+		this.detachLayout = attachPanelLayout(this.widget.dom, renderer.previewEl, layout);
 
 		// 切到编辑视图时阅读视图会被隐藏：除了 layout-change 事件，再用尺寸变化兜底
 		// （其他插件用代码切换模式时不一定触发 layout-change）。
@@ -208,6 +213,7 @@ export class ReadingSearch {
 		this.cancelScheduledSearch();
 		this.clearHighlights();
 		this.ranges = [];
+		this.detachLayout();
 		this.widget.dom.detach();
 		this.host.removeClass('vss-reading-host');
 		this.detachKeymap();
@@ -341,13 +347,14 @@ export function openReadingSearch(
 	view: MarkdownView,
 	seed: string,
 	options: Pick<SearchQuery, SearchOption>,
+	layout: PanelLayoutStore,
 	callbacks: ReadingSearchCallbacks,
 ): boolean {
 	let search = openSearches.get(view);
 	if (!search) {
 		const renderer = getPreviewRenderer(view);
 		if (!renderer) return false;
-		search = new ReadingSearch(app, view, renderer, options, callbacks, () => openSearches.delete(view));
+		search = new ReadingSearch(app, view, renderer, options, layout, callbacks, () => openSearches.delete(view));
 		openSearches.set(view, search);
 	}
 	search.show(seed, seed ? getSelectionAnchor(view, search.renderer) : null);

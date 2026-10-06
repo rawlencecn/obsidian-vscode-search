@@ -4,13 +4,24 @@ import {createSearchPanelExtension} from './search/search-panel';
 import {registerSearchCommands} from './search/search-commands';
 import {restoreReadingViewOnClose} from './search/reading-view';
 import {registerReadingSearch} from './search/reading-search';
-import {ObsidianEditor} from './types';
+import {PanelLayoutStore} from './search/panel-layout';
+import {ObsidianEditor, SearchPlugin} from './types';
 
-export default class VSCodeSearchPlugin extends Plugin {
+/** data.json 的内容。 */
+interface PluginData {
+	panelLayout?: unknown;
+}
 
-	onload() {
+export default class VSCodeSearchPlugin extends Plugin implements SearchPlugin {
+	panelLayout!: PanelLayoutStore;
 
-		this.registerEditorExtension([searchExtension(), createSearchPanelExtension(this.app), restoreReadingViewOnClose]);
+	async onload() {
+		const data = ((await this.loadData()) ?? {}) as PluginData;
+		this.panelLayout = new PanelLayoutStore(data.panelLayout, (panelLayout) => {
+			void this.saveData({...data, panelLayout});
+		});
+
+		this.registerEditorExtension([searchExtension(), createSearchPanelExtension(this.app, this.panelLayout), restoreReadingViewOnClose]);
 
 		registerSearchCommands(this);
 		registerReadingSearch(this);

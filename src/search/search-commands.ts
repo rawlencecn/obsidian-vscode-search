@@ -1,13 +1,13 @@
-import {Plugin, MarkdownView} from 'obsidian';
+import {MarkdownView} from 'obsidian';
 import {StateEffect} from '@codemirror/state';
 import {EditorView} from '@codemirror/view';
 import {togglePanel, setSearchQuery, searchStateField} from './search-state';
 import {forgetReadingViewSwitch, getReadingViewSelection, switchToEditingView} from './reading-view';
 import {getReadingSearch, openReadingSearch, ReadingSearch} from './reading-search';
 import {goToNext, goToPrev, revealMatch, SearchOption, toggleOption} from './search-actions';
-import {ObsidianEditor} from '../types';
+import {ObsidianEditor, SearchPlugin} from '../types';
 
-function getActiveMarkdownView(plugin: Plugin): MarkdownView | null {
+function getActiveMarkdownView(plugin: SearchPlugin): MarkdownView | null {
 	return plugin.app.workspace.getActiveViewOfType(MarkdownView);
 }
 
@@ -19,7 +19,7 @@ function getActiveMarkdownView(plugin: Plugin): MarkdownView | null {
  *
  * seed：预填的搜索词；不传则使用当前选区。
  */
-async function openSearchPanel(plugin: Plugin, showReplace: boolean, seed?: string) {
+async function openSearchPanel(plugin: SearchPlugin, showReplace: boolean, seed?: string) {
 	const activeView = getActiveMarkdownView(plugin);
 	if (!activeView) return;
 
@@ -58,9 +58,9 @@ async function openSearchPanel(plugin: Plugin, showReplace: boolean, seed?: stri
 }
 
 /** 在阅读视图中打开查找；搜索选项与该笔记的编辑器共享。渲染器不可用时返回 false。 */
-function openSearchInReadingView(plugin: Plugin, view: MarkdownView, cmView: EditorView, seed: string): boolean {
+function openSearchInReadingView(plugin: SearchPlugin, view: MarkdownView, cmView: EditorView, seed: string): boolean {
 	const {caseSensitive, wholeWord, useRegex} = cmView.state.field(searchStateField).query;
-	return openReadingSearch(plugin.app, view, seed, {caseSensitive, wholeWord, useRegex}, {
+	return openReadingSearch(plugin.app, view, seed, {caseSensitive, wholeWord, useRegex}, plugin.panelLayout, {
 		onOptionsChange: (query) => {
 			cmView.dispatch({
 				effects: setSearchQuery.of({
@@ -78,14 +78,14 @@ function openSearchInReadingView(plugin: Plugin, view: MarkdownView, cmView: Edi
 }
 
 /** 当前活动的阅读视图中已打开的查找浮窗。 */
-function getActiveReadingSearch(plugin: Plugin): ReadingSearch | null {
+function getActiveReadingSearch(plugin: SearchPlugin): ReadingSearch | null {
 	const activeView = getActiveMarkdownView(plugin);
 	if (!activeView || activeView.getMode() !== 'preview') return null;
 	return getReadingSearch(activeView) ?? null;
 }
 
 /** 当前处于编辑视图、且搜索面板已打开的编辑器。 */
-function getEditorWithOpenPanel(plugin: Plugin): EditorView | null {
+function getEditorWithOpenPanel(plugin: SearchPlugin): EditorView | null {
 	const activeView = getActiveMarkdownView(plugin);
 	if (!activeView || activeView.getMode() !== 'source') return null;
 	const cmView = (activeView.editor as ObsidianEditor).cm;
@@ -94,7 +94,7 @@ function getEditorWithOpenPanel(plugin: Plugin): EditorView | null {
 }
 
 /** 与 VS Code 一致：面板未打开时先打开面板（用选区预填），并跳到最近的匹配。 */
-async function findNextOrPrevious(plugin: Plugin, direction: 'next' | 'previous') {
+async function findNextOrPrevious(plugin: SearchPlugin, direction: 'next' | 'previous') {
 	const readingSearch = getActiveReadingSearch(plugin);
 	if (readingSearch) {
 		if (direction === 'next') readingSearch.next();
@@ -137,7 +137,7 @@ async function findNextOrPrevious(plugin: Plugin, direction: 'next' | 'previous'
 	else revealMatch(opened, state.currentMatchIndex);
 }
 
-export function registerSearchCommands(plugin: Plugin) {
+export function registerSearchCommands(plugin: SearchPlugin) {
 
 	plugin.addCommand({
 		// 注意：Obsidian 会自动把命令 id 前缀为 manifest.json 里的 plugin id。

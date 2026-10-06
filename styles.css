@@ -3,12 +3,15 @@
  *
  * 面板仍挂在 CodeMirror 顶部的 panel 容器（.cm-panels-top，position: sticky）里，
  * 但自身用 absolute 脱离文档流：容器高度为 0，正文不会被挤下去，浮窗盖在编辑器右上角。
+ *
+ * 拖动后的位置和宽度由脚本写入 --vss-panel-top / --vss-panel-right / --vss-panel-width，
+ * 未设置时使用这里的默认值（与 src/search/panel-layout.ts 中的常量一致）。
  */
 .vss-search-panel {
 	position: absolute;
-	top: 6px;
-	right: 24px;
-	width: min(460px, calc(100% - 48px));
+	top: var(--vss-panel-top, 6px);
+	right: var(--vss-panel-right, 24px);
+	width: var(--vss-panel-width, min(460px, calc(100% - 48px)));
 	display: flex;
 	align-items: flex-start;
 	gap: 2px;
@@ -18,6 +21,39 @@
 	border-radius: var(--radius-m);
 	box-shadow: var(--shadow-s);
 	font-size: var(--font-ui-small);
+	/* 空白处（含匹配计数）可以拖动浮窗 */
+	cursor: grab;
+}
+
+.vss-search-panel.is-dragging {
+	cursor: grabbing;
+}
+
+.vss-search-panel.is-resizing {
+	cursor: ew-resize;
+}
+
+/* 左边缘的拖拽条：拖动调整宽度，悬停稍等后显示强调色（与 VS Code 一致） */
+.vss-search-panel .vss-resize-sash {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: -2px;
+	width: 4px;
+	z-index: 1;
+	border-radius: 2px;
+	cursor: ew-resize;
+	transition: background-color 0.1s ease-out;
+}
+
+.vss-search-panel .vss-resize-sash:hover {
+	background-color: var(--interactive-accent);
+	transition-delay: 0.3s;
+}
+
+.vss-search-panel.is-resizing .vss-resize-sash {
+	background-color: var(--interactive-accent);
+	transition-delay: 0s;
 }
 
 /* 阅读视图：浮窗挂在 .markdown-reading-view 上（它本身是 static），需要作为定位参照 */
@@ -69,6 +105,7 @@
 	background-color: var(--background-modifier-form-field);
 	border: 1px solid var(--background-modifier-border);
 	border-radius: var(--radius-s);
+	cursor: text;
 }
 
 .vss-input-box:focus-within {

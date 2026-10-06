@@ -1,4 +1,12 @@
+import {Plugin} from 'obsidian';
 import {EditorView} from '@codemirror/view';
+import type {PanelLayoutStore} from './search/panel-layout';
+
+/** 插件实例上供各模块使用的共享状态。 */
+export interface SearchPlugin extends Plugin {
+	/** 浮窗的位置和宽度（所有浮窗共用，跨会话保存）。 */
+	readonly panelLayout: PanelLayoutStore;
+}
 
 /** Obsidian's Editor exposes a `cm` property for the underlying CodeMirror EditorView. */
 export interface ObsidianEditor {

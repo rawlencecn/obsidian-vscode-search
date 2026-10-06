@@ -11,6 +11,7 @@
 ## 功能
 
 - **浮窗**：和 VS Code 一样悬浮在编辑器右上角，盖在正文上，不会把正文往下推。
+- **可以拖动、调整宽度**：按住浮窗的空白处（例如匹配计数）拖动来移开它，拖动左边缘调整宽度（和 VS Code 一样）。位置和宽度在所有笔记、编辑视图和阅读视图之间共用，重启后保留，浮窗始终限制在正文区域内。双击空白处回到右上角；双击左边缘在默认宽度和加宽之间切换。
 - 搜索框内置区分大小写、全词匹配、正则表达式三个开关。
 - 可折叠的替换行（左侧箭头），支持替换当前和全部替换。
 - 高亮所有匹配，显示「第 n 个 / 共几个」。
@@ -55,9 +56,11 @@ Windows / Linux 建议用 `Ctrl+F` 和 `Ctrl+H`。
 - 浮窗关闭时执行 **Find next** / **Find previous**，会先用选区预填并打开浮窗。
 - 选中的文本本身就是匹配时，它就是当前匹配。
 
-## 安装（手动）
+## 安装
 
-把 `main.js`、`manifest.json`、`styles.css` 复制到 `<Vault>/.obsidian/plugins/vscode-search/`，然后在 **设置 → 第三方插件** 里启用 **VSCode Search**。
+在 Obsidian 里打开 **设置 → 第三方插件 → 浏览**，搜索 **VSCode Search**。
+
+手动安装：把 `main.js`、`manifest.json`、`styles.css` 复制到 `<Vault>/.obsidian/plugins/vscode-search/`，然后在 **设置 → 第三方插件** 里启用 **VSCode Search**。
 
 ## 开发
 

@@ -4,6 +4,7 @@ import {searchStateField, setSearchQuery, setCurrentMatch, togglePanel, closeSea
 import {goToNext, goToPrev, replaceAll, replaceCurrent, toggleOption} from './search-actions';
 import {attachSearchKeymap} from './search-keymap';
 import {SearchWidget} from './search-widget';
+import {attachPanelLayout, PanelLayoutStore} from './panel-layout';
 import {SearchState, VimEditorView} from '../types';
 
 /** Vim 处于插入/可视模式，或有未完成的按键序列时，Esc 应该交给 Vim 处理。 */
@@ -14,7 +15,7 @@ function vimWantsEscape(view: EditorView): boolean {
 	return Boolean(vim.insertMode || vim.visualMode) || pending;
 }
 
-function createSearchPanel(app: App, view: EditorView): Panel {
+function createSearchPanel(app: App, view: EditorView, layout: PanelLayoutStore): Panel {
 	const updateQuery = (newQuery: Parameters<typeof setSearchQuery.of>[0]) => {
 		view.dispatch({effects: setSearchQuery.of(newQuery)});
 	};
@@ -64,6 +65,7 @@ function createSearchPanel(app: App, view: EditorView): Panel {
 		},
 	});
 	let panelsHost: HTMLElement | null = null;
+	let detachLayout: (() => void) | null = null;
 
 	return {
 		dom: widget.dom,
@@ -91,17 +93,20 @@ function createSearchPanel(app: App, view: EditorView): Panel {
 			// 记下容器引用：destroy 时面板可能已从容器中移除，parentElement 会是 null。
 			panelsHost = widget.dom.parentElement;
 			panelsHost?.addClass('vss-panels-host');
+			// 浮窗限制在正文的滚动区域内（不盖住滚动条）。
+			detachLayout = attachPanelLayout(widget.dom, view.scrollDOM, layout);
 			widget.focus();
 		},
 		destroy() {
 			panelsHost?.removeClass('vss-panels-host');
+			detachLayout?.();
 			detachKeymap();
 		}
 	};
 }
 
-export function createSearchPanelExtension(app: App) {
-	const create = (view: EditorView) => createSearchPanel(app, view);
+export function createSearchPanelExtension(app: App, layout: PanelLayoutStore) {
+	const create = (view: EditorView) => createSearchPanel(app, view, layout);
 	return showPanel.compute([searchStateField], (state) => {
 		const searchState = state.field(searchStateField);
 		if (!searchState.panelVisible) return null;
