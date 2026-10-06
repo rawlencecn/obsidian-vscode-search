@@ -4,6 +4,8 @@
 
 给 Obsidian 编辑器用的 VS Code 风格查找替换浮窗。
 
+![打开替换行、开启全词匹配时的 VSCode Search 浮窗](images/screenshot.png)
+
 基于 Liu Hao 的 [Enhanced search and replace](https://github.com/liuhaoxd/obsidian-enhanced-search-replace)（Apache-2.0）修改。
 
 ## 功能

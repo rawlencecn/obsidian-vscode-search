@@ -4,6 +4,8 @@
 
 A VS Code style find and replace widget for the Obsidian editor.
 
+![VSCode Search widget with the replace row open and whole word matching on](images/screenshot.png)
+
 Based on [Enhanced search and replace](https://github.com/liuhaoxd/obsidian-enhanced-search-replace) by Liu Hao (Apache-2.0).
 
 ## Features
