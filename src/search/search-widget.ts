@@ -52,9 +52,10 @@ export class SearchWidget {
 	private readonly optionButtons: Record<SearchOption, HTMLButtonElement>;
 
 	constructor(doc: Document, handlers: SearchWidgetHandlers) {
-		// 从目标文档创建，兼容弹出窗口（popout window）。
-		const dom = this.dom = doc.createElement('div');
-		dom.className = 'vss-search-panel';
+		// 在目标文档所在的窗口中创建，兼容弹出窗口（popout window）。
+		// Obsidian 为每个窗口注入了 createDiv 等全局函数，但类型定义里 Node.win 只是 Window。
+		const win = doc.win as typeof window;
+		const dom = this.dom = win.createDiv({cls: 'vss-search-panel'});
 
 		this.toggleReplaceBtn = createIconButton(dom, 'lucide-chevron-right', 'vss-btn-toggle-replace', 'Toggle replace');
 		const rows = dom.createDiv({cls: 'vss-rows'});
