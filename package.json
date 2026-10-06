@@ -1,7 +1,7 @@
 {
-	"name": "obsidian-enhanced-search-replace",
-	"version": "1.0.0",
-	"description": "Enhanced editor search and replace panel for Obsidian.",
+	"name": "obsidian-vscode-search",
+	"version": "0.1.0",
+	"description": "VS Code style find and replace widget for Obsidian.",
 	"main": "main.js",
 	"type": "module",
 	"scripts": {

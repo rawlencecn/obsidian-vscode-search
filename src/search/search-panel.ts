@@ -6,20 +6,20 @@ import {attachSearchKeymap} from './search-keymap';
 import {SearchState} from '../types';
 
 function createToggleButton(container: HTMLElement, text: string, cls: string, title: string): HTMLButtonElement {
-	const btn = container.createEl('button', {cls: ['esr-toggle-btn', cls], attr: {type: 'button', title}});
+	const btn = container.createEl('button', {cls: ['vss-toggle-btn', cls], attr: {type: 'button', title}});
 	btn.textContent = text;
 	return btn;
 }
 
 function createIconButton(container: HTMLElement, icon: string, cls: string, title: string): HTMLButtonElement {
-	const btn = container.createEl('button', {cls: ['esr-icon-btn', cls], attr: {type: 'button', title}});
+	const btn = container.createEl('button', {cls: ['vss-icon-btn', cls], attr: {type: 'button', title}});
 	btn.textContent = icon;
 	return btn;
 }
 
 function createSearchPanel(app: App, view: EditorView): Panel {
 	const dom = document.createElement('div');
-	dom.className = 'esr-search-panel';
+	dom.className = 'vss-search-panel';
 
 	let searchState: SearchState = view.state.field(searchStateField);
 
@@ -32,52 +32,52 @@ function createSearchPanel(app: App, view: EditorView): Panel {
 		view.focus();
 	};
 
-	const searchRow = dom.createDiv({cls: 'esr-search-row'});
-	const searchInputWrap = searchRow.createDiv({cls: 'esr-input-wrap'});
+	const searchRow = dom.createDiv({cls: 'vss-search-row'});
+	const searchInputWrap = searchRow.createDiv({cls: 'vss-input-wrap'});
 	const searchInput = searchInputWrap.createEl('input', {
-		cls: 'esr-search-input',
+		cls: 'vss-search-input',
 		attr: {type: 'text', placeholder: 'Find', spellcheck: 'false'}
 	});
 	searchInput.value = searchState.query.searchTerm;
-	const findInlineActions = searchInputWrap.createDiv({cls: 'esr-input-actions'});
-	const searchControls = searchRow.createDiv({cls: 'esr-row-controls'});
-	const searchRowEnd = searchRow.createDiv({cls: 'esr-row-end'});
+	const findInlineActions = searchInputWrap.createDiv({cls: 'vss-input-actions'});
+	const searchControls = searchRow.createDiv({cls: 'vss-row-controls'});
+	const searchRowEnd = searchRow.createDiv({cls: 'vss-row-end'});
 
 	// 三个 toggle 按钮内嵌到输入框右侧
-	const findClearBtn = createIconButton(findInlineActions, '×', 'esr-clear-btn', 'Clear');
-	const toggleContainer = findInlineActions.createDiv({cls: 'esr-toggle-container esr-toggle-container-inline'});
-	const caseSensitiveBtn = createToggleButton(toggleContainer, 'Aa', 'esr-btn-case', 'Match case');
-	const wholeWordBtn = createToggleButton(toggleContainer, 'ab', 'esr-btn-whole-word', 'Match whole word');
-	const regexBtn = createToggleButton(toggleContainer, '.*', 'esr-btn-regex', 'Use regular expression');
+	const findClearBtn = createIconButton(findInlineActions, '×', 'vss-clear-btn', 'Clear');
+	const toggleContainer = findInlineActions.createDiv({cls: 'vss-toggle-container vss-toggle-container-inline'});
+	const caseSensitiveBtn = createToggleButton(toggleContainer, 'Aa', 'vss-btn-case', 'Match case');
+	const wholeWordBtn = createToggleButton(toggleContainer, 'ab', 'vss-btn-whole-word', 'Match whole word');
+	const regexBtn = createToggleButton(toggleContainer, '.*', 'vss-btn-regex', 'Use regular expression');
 
 	caseSensitiveBtn.classList.toggle('active', searchState.query.caseSensitive);
 	wholeWordBtn.classList.toggle('active', searchState.query.wholeWord);
 	regexBtn.classList.toggle('active', searchState.query.useRegex);
 
-	const navContainer = searchControls.createDiv({cls: 'esr-nav-container'});
-	const matchCount = navContainer.createDiv({cls: 'esr-match-count'});
-	const prevBtn = createIconButton(navContainer, '↑', 'esr-btn-prev', 'Previous match (Shift+Enter)');
-	const nextBtn = createIconButton(navContainer, '↓', 'esr-btn-next', 'Next match (Enter)');
+	const navContainer = searchControls.createDiv({cls: 'vss-nav-container'});
+	const matchCount = navContainer.createDiv({cls: 'vss-match-count'});
+	const prevBtn = createIconButton(navContainer, '↑', 'vss-btn-prev', 'Previous match (Shift+Enter)');
+	const nextBtn = createIconButton(navContainer, '↓', 'vss-btn-next', 'Next match (Enter)');
 
-	const replaceRow = dom.createDiv({cls: 'esr-search-row'});
-	// 注意：`.esr-search-row` 使用的是 grid；这里不要设置为 flex，否则两行输入框无法对齐。
+	const replaceRow = dom.createDiv({cls: 'vss-search-row'});
+	// 注意：`.vss-search-row` 使用的是 grid；这里不要设置为 flex，否则两行输入框无法对齐。
 	replaceRow.style.display = searchState.showReplace ? 'grid' : 'none';
-	const replaceInputWrap = replaceRow.createDiv({cls: 'esr-input-wrap'});
+	const replaceInputWrap = replaceRow.createDiv({cls: 'vss-input-wrap'});
 	const replaceInput = replaceInputWrap.createEl('input', {
-		cls: 'esr-search-input',
+		cls: 'vss-search-input',
 		attr: {type: 'text', placeholder: 'Replace', spellcheck: 'false'}
 	});
 	replaceInput.value = searchState.query.replaceTerm;
-	const replaceInlineActions = replaceInputWrap.createDiv({cls: 'esr-input-actions'});
-	const replaceClearBtn = createIconButton(replaceInlineActions, '×', 'esr-clear-btn', 'Clear');
-	const replaceControls = replaceRow.createDiv({cls: 'esr-row-controls'});
+	const replaceInlineActions = replaceInputWrap.createDiv({cls: 'vss-input-actions'});
+	const replaceClearBtn = createIconButton(replaceInlineActions, '×', 'vss-clear-btn', 'Clear');
+	const replaceControls = replaceRow.createDiv({cls: 'vss-row-controls'});
 	// 占位：保证 Replace 行与 Find 行同样的三列布局
-	replaceRow.createDiv({cls: 'esr-row-end'});
-	const replaceBtnsContainer = replaceControls.createDiv({cls: 'esr-replace-btns'});
-	const replaceBtn = createIconButton(replaceBtnsContainer, 'Replace', 'esr-btn-replace', 'Replace');
-	const replaceAllBtn = createIconButton(replaceBtnsContainer, 'Replace all', 'esr-btn-replace-all', 'Replace all');
+	replaceRow.createDiv({cls: 'vss-row-end'});
+	const replaceBtnsContainer = replaceControls.createDiv({cls: 'vss-replace-btns'});
+	const replaceBtn = createIconButton(replaceBtnsContainer, 'Replace', 'vss-btn-replace', 'Replace');
+	const replaceAllBtn = createIconButton(replaceBtnsContainer, 'Replace all', 'vss-btn-replace-all', 'Replace all');
 
-	const closeBtn = searchRowEnd.createEl('button', {cls: 'esr-close-btn', attr: {type: 'button', title: 'Close (esc)'}});
+	const closeBtn = searchRowEnd.createEl('button', {cls: 'vss-close-btn', attr: {type: 'button', title: 'Close (esc)'}});
 	closeBtn.textContent = '×';
 
 

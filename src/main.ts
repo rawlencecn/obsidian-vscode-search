@@ -5,7 +5,7 @@ import {registerSearchCommands} from './search/search-commands';
 import {restoreReadingViewOnClose} from './search/reading-view';
 import {ObsidianEditor} from './types';
 
-export default class EnhancedSearchReplacePlugin extends Plugin {
+export default class VSCodeSearchPlugin extends Plugin {
 
 	onload() {
 

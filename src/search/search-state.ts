@@ -58,8 +58,8 @@ export const searchStateField = StateField.define<SearchState>({
 	},
 });
 
-const matchHighlight = Decoration.mark({class: 'esr-highlight'});
-const activeMatchHighlight = Decoration.mark({class: 'esr-highlight-active'});
+const matchHighlight = Decoration.mark({class: 'vss-highlight'});
+const activeMatchHighlight = Decoration.mark({class: 'vss-highlight-active'});
 
 export const searchDecorations = StateField.define<DecorationSet>({
 	create() {

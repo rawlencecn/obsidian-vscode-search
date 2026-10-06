@@ -9,7 +9,7 @@ import {ObsidianEditor, ObsidianApp} from '../types';
 async function openSearchPanel(plugin: Plugin, showReplace: boolean) {
 	const activeView = plugin.app.workspace.getActiveViewOfType(MarkdownView);
 	if (!activeView) {
-		console.error('Enhanced Search Replace: 没有活动的 Markdown 视图');
+		console.error('VSCode Search: 没有活动的 Markdown 视图');
 		return;
 	}
 
@@ -39,7 +39,7 @@ async function openSearchPanel(plugin: Plugin, showReplace: boolean) {
 
 		cmView.dispatch({effects});
 	} else {
-		console.error('Enhanced Search Replace: 未找到 CodeMirror view');
+		console.error('VSCode Search: 未找到 CodeMirror view');
 	}
 }
 
@@ -145,10 +145,10 @@ export function registerSearchCommands(plugin: Plugin) {
 	try {
 		const commands = (plugin.app as ObsidianApp)?.commands?.commands;
 		if (commands && typeof commands === 'object') {
-			const keys = Object.keys(commands).filter((k) => k.includes('enhanced-search-replace'));
-			console.debug('Enhanced Search Replace: 已注册命令 keys =', keys);
+			const keys = Object.keys(commands).filter((k) => k.startsWith(`${plugin.manifest.id}:`));
+			console.debug('VSCode Search: 已注册命令 keys =', keys);
 		}
 	} catch (e) {
-		console.error('Enhanced Search Replace: 打印已注册命令 keys 失败', e);
+		console.error('VSCode Search: 打印已注册命令 keys 失败', e);
 	}
 }

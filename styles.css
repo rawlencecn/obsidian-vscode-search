@@ -1,17 +1,17 @@
-.esr-search-panel {
+.vss-search-panel {
 	background-color: var(--background-primary);
 	border-bottom: 1px solid var(--divider-color);
 	padding: 8px 12px;
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
-	--esr-input-width: 400px;
+	--vss-input-width: 400px;
 	/* 确保在顶部时不会被内容覆盖 */
 	z-index: 10;
 }
 
 /* 防止被 Obsidian 主题的 button 样式覆盖：默认纯图标/文字，无背景无边框 */
-.esr-search-panel button {
+.vss-search-panel button {
 	-webkit-appearance: none;
 	appearance: none;
 	background: transparent !important;
@@ -21,28 +21,28 @@
 	margin: 0;
 }
 
-.esr-search-panel button:focus {
+.vss-search-panel button:focus {
 	outline: none;
 }
 
-.esr-search-panel button:focus-visible {
+.vss-search-panel button:focus-visible {
 	outline: 2px solid var(--interactive-accent);
 	outline-offset: 1px;
 }
 
-.esr-search-row {
+.vss-search-row {
 	display: grid;
-	grid-template-columns: minmax(200px, var(--esr-input-width)) auto 28px;
+	grid-template-columns: minmax(200px, var(--vss-input-width)) auto 28px;
 	align-items: center;
 	column-gap: 8px;
 }
 
-.esr-input-wrap {
+.vss-input-wrap {
 	position: relative;
 	width: 100%;
 }
 
-.esr-input-actions {
+.vss-input-actions {
 	position: absolute;
 	right: 6px;
 	top: 50%;
@@ -52,20 +52,20 @@
 	gap: 4px;
 }
 
-.esr-row-controls {
+.vss-row-controls {
 	display: flex;
 	align-items: center;
 	justify-content: flex-start;
 	gap: 8px;
 }
 
-.esr-row-end {
+.vss-row-end {
 	display: flex;
 	align-items: center;
 	justify-content: flex-end;
 }
 
-.esr-search-input {
+.vss-search-input {
 	flex: 0 0 auto;
 	min-width: 150px;
 	width: 100%;
@@ -79,20 +79,20 @@
 	outline: none;
 }
 
-.esr-search-input:focus {
+.vss-search-input:focus {
 	border-color: var(--interactive-accent);
 }
 
-.esr-toggle-container {
+.vss-toggle-container {
 	display: flex;
 	gap: 4px;
 }
 
-.esr-toggle-container-inline {
+.vss-toggle-container-inline {
 	gap: 2px;
 }
 
-.esr-toggle-btn {
+.vss-toggle-btn {
 	padding: 4px 8px;
 	border-radius: 4px;
 	color: var(--text-muted);
@@ -103,29 +103,29 @@
 	text-align: center;
 }
 
-.esr-toggle-btn:hover {
+.vss-toggle-btn:hover {
 	background-color: var(--background-modifier-hover) !important;
 	color: var(--text-normal);
 }
 
-.esr-toggle-btn.active {
+.vss-toggle-btn.active {
 	/* 激活态不铺底，只改变前景色 */
 	background-color: transparent !important;
 	color: var(--interactive-accent);
 }
 
-.esr-toggle-btn:active {
+.vss-toggle-btn:active {
 	background-color: var(--background-modifier-active) !important;
 }
 
-.esr-nav-container {
+.vss-nav-container {
 	display: flex;
 	align-items: center;
 	gap: 4px;
 }
 
-.esr-icon-btn,
-.esr-replace-btns button {
+.vss-icon-btn,
+.vss-replace-btns button {
 	padding: 4px 10px;
 	border-radius: 4px;
 	color: var(--text-muted);
@@ -136,13 +136,13 @@
 }
 
 /* 上/下箭头更大 */
-.esr-btn-prev,
-.esr-btn-next {
+.vss-btn-prev,
+.vss-btn-next {
 	font-size: 16px;
 }
 
 /* 清空按钮更小 */
-.esr-clear-btn {
+.vss-clear-btn {
 	min-width: 18px;
 	width: 18px;
 	height: 18px;
@@ -152,44 +152,44 @@
 	line-height: 1;
 }
 
-.esr-clear-btn:hover {
+.vss-clear-btn:hover {
 	background-color: var(--background-modifier-hover) !important;
 }
 
 /* Replace / Replace All 默认显示背景 */
-.esr-replace-btns .esr-icon-btn {
+.vss-replace-btns .vss-icon-btn {
 	background-color: var(--background-secondary) !important;
 	color: var(--text-normal);
 }
 
-.esr-icon-btn:hover,
-.esr-replace-btns button:hover {
+.vss-icon-btn:hover,
+.vss-replace-btns button:hover {
 	background-color: var(--background-modifier-hover) !important;
 	color: var(--text-normal);
 }
 
-.esr-icon-btn:active,
-.esr-replace-btns button:active {
+.vss-icon-btn:active,
+.vss-replace-btns button:active {
 	background-color: var(--background-modifier-active) !important;
 }
 
-.esr-match-count {
+.vss-match-count {
 	font-size: 12px;
 	color: var(--text-muted);
 	min-width: 70px;
 	text-align: center;
 }
 
-.esr-match-count.is-empty {
+.vss-match-count.is-empty {
 	color: var(--text-error);
 }
 
-.esr-replace-btns {
+.vss-replace-btns {
 	display: flex;
 	gap: 4px;
 }
 
-.esr-close-btn {
+.vss-close-btn {
 	width: 28px;
 	height: 28px;
 	border-radius: 4px;
@@ -203,20 +203,20 @@
 	padding: 0;
 }
 
-.esr-close-btn:hover {
+.vss-close-btn:hover {
 	background-color: var(--background-modifier-hover) !important;
 	color: var(--text-normal);
 }
 
-.esr-close-btn:active {
+.vss-close-btn:active {
 	background-color: var(--background-modifier-active) !important;
 }
 
-.cm-line .esr-highlight {
+.cm-line .vss-highlight {
 	background-color: rgba(255, 203, 0, 0.4);
 }
 
-.cm-line .esr-highlight-active {
+.cm-line .vss-highlight-active {
 	background-color: rgba(255, 153, 0, 0.7);
 	outline: 1px solid rgba(255, 128, 0, 0.9);
 }
