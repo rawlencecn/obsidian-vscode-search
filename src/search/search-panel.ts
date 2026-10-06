@@ -1,19 +1,24 @@
-import {App} from 'obsidian';
+import {App, Platform, setIcon} from 'obsidian';
 import {showPanel, Panel, EditorView} from '@codemirror/view';
 import {searchStateField, setSearchQuery, setCurrentMatch, togglePanel, closeSearch} from './search-state';
 import {goToNext, goToPrev, replaceAll, replaceCurrent, toggleOption} from './search-actions';
 import {attachSearchKeymap} from './search-keymap';
 import {SearchState} from '../types';
 
-function createToggleButton(container: HTMLElement, text: string, cls: string, title: string): HTMLButtonElement {
-	const btn = container.createEl('button', {cls: ['vss-toggle-btn', cls], attr: {type: 'button', title}});
-	btn.textContent = text;
-	return btn;
+/** 按平台生成快捷键提示，例如 macOS 上是「⌥⌘C」，其他平台是「Alt+C」。 */
+function shortcut(mac: string, other: string): string {
+	return Platform.isMacOS ? mac : other;
 }
 
 function createIconButton(container: HTMLElement, icon: string, cls: string, title: string): HTMLButtonElement {
-	const btn = container.createEl('button', {cls: ['vss-icon-btn', cls], attr: {type: 'button', title}});
-	btn.textContent = icon;
+	const btn = container.createEl('button', {cls: ['vss-icon-btn', cls], attr: {type: 'button', 'aria-label': title}});
+	setIcon(btn, icon);
+	return btn;
+}
+
+function createToggleButton(container: HTMLElement, icon: string, cls: string, title: string): HTMLButtonElement {
+	const btn = createIconButton(container, icon, cls, title);
+	btn.addClass('vss-toggle-btn');
 	return btn;
 }
 
@@ -32,54 +37,61 @@ function createSearchPanel(app: App, view: EditorView): Panel {
 		view.focus();
 	};
 
-	const searchRow = dom.createDiv({cls: 'vss-search-row'});
-	const searchInputWrap = searchRow.createDiv({cls: 'vss-input-wrap'});
-	const searchInput = searchInputWrap.createEl('input', {
+	// 布局与 VS Code 的查找小部件一致：
+	// [展开替换] [查找输入框 + 区分大小写/全词/正则] [计数] [上一个] [下一个] [关闭]
+	//            [替换输入框]                       [替换] [全部替换]
+	const toggleReplaceBtn = createIconButton(dom, 'lucide-chevron-right', 'vss-btn-toggle-replace', 'Toggle replace');
+	const rows = dom.createDiv({cls: 'vss-rows'});
+
+	const searchRow = rows.createDiv({cls: 'vss-row'});
+	const searchInputBox = searchRow.createDiv({cls: 'vss-input-box'});
+	const searchInput = searchInputBox.createEl('input', {
 		cls: 'vss-search-input',
 		attr: {type: 'text', placeholder: 'Find', spellcheck: 'false'}
 	});
 	searchInput.value = searchState.query.searchTerm;
-	const findInlineActions = searchInputWrap.createDiv({cls: 'vss-input-actions'});
-	const searchControls = searchRow.createDiv({cls: 'vss-row-controls'});
-	const searchRowEnd = searchRow.createDiv({cls: 'vss-row-end'});
-
-	// 三个 toggle 按钮内嵌到输入框右侧
-	const findClearBtn = createIconButton(findInlineActions, '×', 'vss-clear-btn', 'Clear');
-	const toggleContainer = findInlineActions.createDiv({cls: 'vss-toggle-container vss-toggle-container-inline'});
-	const caseSensitiveBtn = createToggleButton(toggleContainer, 'Aa', 'vss-btn-case', 'Match case');
-	const wholeWordBtn = createToggleButton(toggleContainer, 'ab', 'vss-btn-whole-word', 'Match whole word');
-	const regexBtn = createToggleButton(toggleContainer, '.*', 'vss-btn-regex', 'Use regular expression');
+	const findClearBtn = createIconButton(searchInputBox, 'lucide-x', 'vss-clear-btn', 'Clear');
+	const caseSensitiveBtn = createToggleButton(searchInputBox, 'lucide-case-sensitive', 'vss-btn-case', `Match case (${shortcut('⌥⌘C', 'Alt+C')})`);
+	const wholeWordBtn = createToggleButton(searchInputBox, 'lucide-whole-word', 'vss-btn-whole-word', `Match whole word (${shortcut('⌥⌘W', 'Alt+W')})`);
+	const regexBtn = createToggleButton(searchInputBox, 'lucide-regex', 'vss-btn-regex', `Use regular expression (${shortcut('⌥⌘R', 'Alt+R')})`);
 
 	caseSensitiveBtn.classList.toggle('active', searchState.query.caseSensitive);
 	wholeWordBtn.classList.toggle('active', searchState.query.wholeWord);
 	regexBtn.classList.toggle('active', searchState.query.useRegex);
 
-	const navContainer = searchControls.createDiv({cls: 'vss-nav-container'});
-	const matchCount = navContainer.createDiv({cls: 'vss-match-count'});
-	const prevBtn = createIconButton(navContainer, '↑', 'vss-btn-prev', 'Previous match (Shift+Enter)');
-	const nextBtn = createIconButton(navContainer, '↓', 'vss-btn-next', 'Next match (Enter)');
+	const searchControls = searchRow.createDiv({cls: 'vss-row-controls'});
+	const matchCount = searchControls.createDiv({cls: 'vss-match-count'});
+	const prevBtn = createIconButton(searchControls, 'lucide-arrow-up', 'vss-btn-prev', `Previous match (${shortcut('⇧Enter, ⇧⌘G', 'Shift+Enter, Shift+F3')})`);
+	const nextBtn = createIconButton(searchControls, 'lucide-arrow-down', 'vss-btn-next', `Next match (${shortcut('Enter, ⌘G', 'Enter, F3')})`);
+	const closeBtn = createIconButton(searchControls, 'lucide-x', 'vss-close-btn', 'Close (Escape)');
 
-	const replaceRow = dom.createDiv({cls: 'vss-search-row'});
-	// 注意：`.vss-search-row` 使用的是 grid；这里不要设置为 flex，否则两行输入框无法对齐。
-	replaceRow.style.display = searchState.showReplace ? 'grid' : 'none';
-	const replaceInputWrap = replaceRow.createDiv({cls: 'vss-input-wrap'});
-	const replaceInput = replaceInputWrap.createEl('input', {
+	const replaceRow = rows.createDiv({cls: 'vss-row'});
+	replaceRow.toggleClass('vss-hidden', !searchState.showReplace);
+	const replaceInputBox = replaceRow.createDiv({cls: 'vss-input-box'});
+	const replaceInput = replaceInputBox.createEl('input', {
 		cls: 'vss-search-input',
 		attr: {type: 'text', placeholder: 'Replace', spellcheck: 'false'}
 	});
 	replaceInput.value = searchState.query.replaceTerm;
-	const replaceInlineActions = replaceInputWrap.createDiv({cls: 'vss-input-actions'});
-	const replaceClearBtn = createIconButton(replaceInlineActions, '×', 'vss-clear-btn', 'Clear');
+	const replaceClearBtn = createIconButton(replaceInputBox, 'lucide-x', 'vss-clear-btn', 'Clear');
 	const replaceControls = replaceRow.createDiv({cls: 'vss-row-controls'});
-	// 占位：保证 Replace 行与 Find 行同样的三列布局
-	replaceRow.createDiv({cls: 'vss-row-end'});
-	const replaceBtnsContainer = replaceControls.createDiv({cls: 'vss-replace-btns'});
-	const replaceBtn = createIconButton(replaceBtnsContainer, 'Replace', 'vss-btn-replace', 'Replace');
-	const replaceAllBtn = createIconButton(replaceBtnsContainer, 'Replace all', 'vss-btn-replace-all', 'Replace all');
+	const replaceBtn = createIconButton(replaceControls, 'lucide-replace', 'vss-btn-replace', `Replace (${shortcut('⇧⌘1', 'Shift+Ctrl+1')})`);
+	const replaceAllBtn = createIconButton(replaceControls, 'lucide-replace-all', 'vss-btn-replace-all', `Replace all (${shortcut('⌥⌘Enter', 'Ctrl+Alt+Enter')})`);
 
-	const closeBtn = searchRowEnd.createEl('button', {cls: 'vss-close-btn', attr: {type: 'button', title: 'Close (esc)'}});
-	closeBtn.textContent = '×';
+	// 与 VS Code 一致：打开替换模式且已有搜索词时，焦点直接进入替换框；否则进入搜索框。
+	const focusInput = () => {
+		const state = view.state.field(searchStateField);
+		const input = state.showReplace && state.query.searchTerm ? replaceInput : searchInput;
+		input.focus();
+		input.select();
+	};
 
+	const syncReplaceToggle = (showReplace: boolean) => {
+		replaceRow.toggleClass('vss-hidden', !showReplace);
+		toggleReplaceBtn.toggleClass('is-expanded', showReplace);
+		setIcon(toggleReplaceBtn, showReplace ? 'lucide-chevron-down' : 'lucide-chevron-right');
+	};
+	syncReplaceToggle(searchState.showReplace);
 
 	const updateMatchCount = () => {
 		const state = view.state.field(searchStateField);
@@ -150,12 +162,16 @@ function createSearchPanel(app: App, view: EditorView): Panel {
 	replaceBtn.addEventListener('click', () => replaceCurrent(view));
 	replaceAllBtn.addEventListener('click', () => replaceAll(view));
 	closeBtn.addEventListener('click', close);
+	toggleReplaceBtn.addEventListener('click', () => {
+		const showReplace = !view.state.field(searchStateField).showReplace;
+		view.dispatch({effects: togglePanel.of({visible: true, showReplace})});
+	});
 
 	const detachKeymap = attachSearchKeymap(app, view);
 
 	return {
 		dom,
-		// 将 panel 放到编辑器顶部（默认会在底部）
+		// 挂在编辑器顶部的 panel 容器里，再通过 CSS 让它浮在右上角（不占据布局空间）。
 		top: true,
 		update(update) {
 			const hasSearchEffects = update.transactions.some((tr) =>
@@ -167,8 +183,8 @@ function createSearchPanel(app: App, view: EditorView): Panel {
 			// 通过 Cmd+P 触发时，通常只有 StateEffect，没有 docChanged/selectionSet。
 			if (update.docChanged || update.selectionSet || hasSearchEffects) {
 				const newState = update.state.field(searchStateField);
-				if (newState.showReplace !== (replaceRow.style.display !== 'none')) {
-					replaceRow.style.display = newState.showReplace ? 'grid' : 'none';
+				if (newState.showReplace === replaceRow.hasClass('vss-hidden')) {
+					syncReplaceToggle(newState.showReplace);
 				}
 				if (searchInput.value !== newState.query.searchTerm) {
 					searchInput.value = newState.query.searchTerm;
@@ -184,18 +200,14 @@ function createSearchPanel(app: App, view: EditorView): Panel {
 				updateMatchCount();
 			}
 
-			// 面板已打开时再次触发 Find / Find and replace：与 VS Code 一致，焦点回到搜索框并全选。
+			// 面板已打开时再次触发 Find / Find and replace（或点击展开箭头）：焦点回到输入框并全选。
 			const reopened = update.transactions.some((tr) =>
 				tr.effects.some((e) => e.is(togglePanel) && e.value.visible)
 			);
-			if (reopened) {
-				searchInput.focus();
-				searchInput.select();
-			}
+			if (reopened) focusInput();
 		},
 		mount() {
-			searchInput.focus();
-			searchInput.select();
+			focusInput();
 		},
 		destroy() {
 			detachKeymap();

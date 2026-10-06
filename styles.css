@@ -1,216 +1,175 @@
+/*
+ * VS Code 风格的查找浮窗。
+ *
+ * 面板仍挂在 CodeMirror 顶部的 panel 容器（.cm-panels-top，position: sticky）里，
+ * 但自身用 absolute 脱离文档流：容器高度为 0，正文不会被挤下去，浮窗盖在编辑器右上角。
+ */
 .vss-search-panel {
+	position: absolute;
+	top: 6px;
+	right: 24px;
+	width: min(460px, calc(100% - 48px));
+	display: flex;
+	align-items: flex-start;
+	gap: 2px;
+	padding: 4px 4px 4px 2px;
 	background-color: var(--background-primary);
-	border-bottom: 1px solid var(--divider-color);
-	padding: 8px 12px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m);
+	box-shadow: var(--shadow-s);
+	font-size: var(--font-ui-small);
+}
+
+/* panel 容器只剩浮窗时，去掉它自带的分隔线 */
+.cm-panels.cm-panels-top:has(> .vss-search-panel) {
+	border-bottom: none;
+}
+
+.vss-rows {
+	flex: 1 1 auto;
+	min-width: 0;
 	display: flex;
 	flex-direction: column;
-	gap: 6px;
-	--vss-input-width: 400px;
-	/* 确保在顶部时不会被内容覆盖 */
-	z-index: 10;
+	gap: 4px;
 }
 
-/* 防止被 Obsidian 主题的 button 样式覆盖：默认纯图标/文字，无背景无边框 */
-.vss-search-panel button {
-	-webkit-appearance: none;
-	appearance: none;
-	background: transparent !important;
-	border: none !important;
-	box-shadow: none !important;
-	padding: 0;
-	margin: 0;
-}
-
-.vss-search-panel button:focus {
-	outline: none;
-}
-
-.vss-search-panel button:focus-visible {
-	outline: 2px solid var(--interactive-accent);
-	outline-offset: 1px;
-}
-
-.vss-search-row {
-	display: grid;
-	grid-template-columns: minmax(200px, var(--vss-input-width)) auto 28px;
-	align-items: center;
-	column-gap: 8px;
-}
-
-.vss-input-wrap {
-	position: relative;
-	width: 100%;
-}
-
-.vss-input-actions {
-	position: absolute;
-	right: 6px;
-	top: 50%;
-	transform: translateY(-50%);
+.vss-row {
 	display: flex;
 	align-items: center;
 	gap: 4px;
 }
 
-.vss-row-controls {
+.vss-hidden {
+	display: none !important;
+}
+
+/* ---------- 输入框：边框画在外层，按钮与文字并排，长文本不会被按钮盖住 ---------- */
+
+.vss-input-box {
+	flex: 1 1 auto;
+	min-width: 0;
+	height: 26px;
 	display: flex;
 	align-items: center;
-	justify-content: flex-start;
-	gap: 8px;
+	gap: 1px;
+	padding-right: 2px;
+	background-color: var(--background-modifier-form-field);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-s);
 }
 
-.vss-row-end {
-	display: flex;
-	align-items: center;
-	justify-content: flex-end;
-}
-
-.vss-search-input {
-	flex: 0 0 auto;
-	min-width: 150px;
-	width: 100%;
-	padding: 6px 8px;
-	padding-right: 148px;
-	border: 1px solid var(--border-color);
-	border-radius: 4px;
-	background-color: var(--background-primary);
-	color: var(--text-normal);
-	font-size: 14px;
-	outline: none;
-}
-
-.vss-search-input:focus {
+.vss-input-box:focus-within {
 	border-color: var(--interactive-accent);
 }
 
-.vss-toggle-container {
-	display: flex;
-	gap: 4px;
-}
-
-.vss-toggle-container-inline {
-	gap: 2px;
-}
-
-.vss-toggle-btn {
-	padding: 4px 8px;
-	border-radius: 4px;
-	color: var(--text-muted);
-	font-size: 11px;
-	cursor: pointer;
-	font-weight: 400;
-	min-width: 34px;
-	text-align: center;
-}
-
-.vss-toggle-btn:hover {
-	background-color: var(--background-modifier-hover) !important;
+.vss-search-panel input.vss-search-input,
+.vss-search-panel input.vss-search-input:focus,
+.vss-search-panel input.vss-search-input:hover {
+	flex: 1 1 auto;
+	min-width: 0;
+	height: 100%;
+	padding: 0 6px;
+	border: none;
+	background: transparent;
+	box-shadow: none;
 	color: var(--text-normal);
+	font-size: var(--font-ui-small);
 }
 
-.vss-toggle-btn.active {
-	/* 激活态不铺底，只改变前景色 */
-	background-color: transparent !important;
-	color: var(--interactive-accent);
+/* ---------- 按钮 ---------- */
+
+.vss-search-panel button.vss-icon-btn {
+	flex: 0 0 auto;
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	margin: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	background: transparent;
+	border: none;
+	box-shadow: none;
+	border-radius: var(--radius-s);
+	color: var(--icon-color);
+	cursor: var(--cursor);
 }
 
-.vss-toggle-btn:active {
-	background-color: var(--background-modifier-active) !important;
+.vss-search-panel button.vss-icon-btn svg {
+	width: 16px;
+	height: 16px;
 }
 
-.vss-nav-container {
+.vss-search-panel button.vss-icon-btn:hover {
+	background-color: var(--background-modifier-hover);
+	color: var(--icon-color-hover);
+}
+
+.vss-search-panel button.vss-icon-btn:active {
+	background-color: var(--background-modifier-active-hover);
+}
+
+.vss-search-panel button.vss-icon-btn:focus-visible {
+	outline: 2px solid var(--interactive-accent);
+	outline-offset: -2px;
+}
+
+/* 输入框内的按钮更小一些 */
+.vss-search-panel .vss-input-box button.vss-icon-btn {
+	width: 20px;
+	height: 20px;
+}
+
+.vss-search-panel .vss-input-box button.vss-icon-btn svg {
+	width: 14px;
+	height: 14px;
+}
+
+/* 开关打开时：强调色 + 浅底 + 描边，和 VS Code 一样一眼能看出状态 */
+.vss-search-panel button.vss-toggle-btn.active,
+.vss-search-panel button.vss-toggle-btn.active:hover {
+	color: var(--text-accent);
+	background-color: hsla(var(--interactive-accent-hsl), 0.15);
+	box-shadow: inset 0 0 0 1px hsla(var(--interactive-accent-hsl), 0.6);
+}
+
+/* 展开/收起替换行的箭头：竖向占满两行的高度 */
+.vss-search-panel button.vss-btn-toggle-replace {
+	width: 18px;
+	height: auto;
+	min-height: 26px;
+	align-self: stretch;
+}
+
+.vss-search-panel button.vss-btn-toggle-replace svg {
+	width: 14px;
+	height: 14px;
+}
+
+/* ---------- 右侧控制区 ---------- */
+
+/* 两行的控制区等宽，两个输入框才能上下对齐 */
+.vss-row-controls {
+	flex: 0 0 auto;
+	width: 144px;
 	display: flex;
 	align-items: center;
-	gap: 4px;
-}
-
-.vss-icon-btn,
-.vss-replace-btns button {
-	padding: 4px 10px;
-	border-radius: 4px;
-	color: var(--text-muted);
-	font-size: 12px;
-	cursor: pointer;
-	min-width: 34px;
-	text-align: center;
-}
-
-/* 上/下箭头更大 */
-.vss-btn-prev,
-.vss-btn-next {
-	font-size: 16px;
-}
-
-/* 清空按钮更小 */
-.vss-clear-btn {
-	min-width: 18px;
-	width: 18px;
-	height: 18px;
-	padding: 0;
-	border-radius: 4px;
-	font-size: 14px;
-	line-height: 1;
-}
-
-.vss-clear-btn:hover {
-	background-color: var(--background-modifier-hover) !important;
-}
-
-/* Replace / Replace All 默认显示背景 */
-.vss-replace-btns .vss-icon-btn {
-	background-color: var(--background-secondary) !important;
-	color: var(--text-normal);
-}
-
-.vss-icon-btn:hover,
-.vss-replace-btns button:hover {
-	background-color: var(--background-modifier-hover) !important;
-	color: var(--text-normal);
-}
-
-.vss-icon-btn:active,
-.vss-replace-btns button:active {
-	background-color: var(--background-modifier-active) !important;
+	gap: 1px;
 }
 
 .vss-match-count {
-	font-size: 12px;
+	min-width: 68px;
+	padding: 0 6px;
 	color: var(--text-muted);
-	min-width: 70px;
-	text-align: center;
+	font-size: var(--font-ui-smaller);
+	white-space: nowrap;
 }
 
 .vss-match-count.is-empty {
 	color: var(--text-error);
 }
 
-.vss-replace-btns {
-	display: flex;
-	gap: 4px;
-}
-
-.vss-close-btn {
-	width: 28px;
-	height: 28px;
-	border-radius: 4px;
-	color: var(--text-muted);
-	font-size: 20px;
-	cursor: pointer;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	line-height: 1;
-	padding: 0;
-}
-
-.vss-close-btn:hover {
-	background-color: var(--background-modifier-hover) !important;
-	color: var(--text-normal);
-}
-
-.vss-close-btn:active {
-	background-color: var(--background-modifier-active) !important;
-}
+/* ---------- 正文中的匹配高亮 ---------- */
 
 .cm-line .vss-highlight {
 	background-color: rgba(255, 203, 0, 0.4);

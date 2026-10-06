@@ -1,7 +1,16 @@
 import {App, KeymapEventListener, Modifier, Platform, Scope} from 'obsidian';
 import {EditorView} from '@codemirror/view';
 import {goToNext, goToPrev, replaceAll, replaceCurrent, toggleOption} from './search-actions';
-import {searchStateField} from './search-state';
+import {closeSearch, searchStateField} from './search-state';
+import {VimEditorView} from '../types';
+
+/** Vim 处于插入/可视模式，或有未完成的按键序列时，Esc 应该交给 Vim 处理。 */
+function vimWantsEscape(view: EditorView): boolean {
+	const vim = (view as VimEditorView).cm?.state?.vim;
+	if (!vim) return false;
+	const pending = Boolean(vim.inputState?.operator) || (vim.inputState?.keyBuffer?.length ?? 0) > 0;
+	return Boolean(vim.insertMode || vim.visualMode) || pending;
+}
 
 /**
  * VS Code 风格的查找快捷键（与 VS Code 默认键位一致；括号内为 Windows / Linux）：
@@ -12,6 +21,7 @@ import {searchStateField} from './search-state';
  * - 正则表达式：Alt+Cmd+R（Alt+R）
  * - 替换当前：Shift+Cmd+1（Shift+Ctrl+1），仅在显示替换行时生效
  * - 全部替换：Alt+Cmd+Enter（Alt+Ctrl+Enter），仅在显示替换行时生效
+ * - 关闭：Escape。焦点在正文且 Vim 处于插入/可视模式时，Esc 先交给 Vim（与 VSCodeVim 一致）
  *
  * Obsidian 在 window 的 capture 阶段处理快捷键，普通的 keydown 监听抢不过全局快捷键
  * （例如 Mod+G 默认是「打开关系图谱」），所以这里用 Scope：只在焦点位于该编辑器
@@ -44,6 +54,14 @@ function createSearchScope(app: App, view: EditorView): Scope {
 
 	bind(['Mod', 'Shift'], '1', whenReplaceShown(replaceCurrent));
 	bind(['Mod', 'Alt'], 'Enter', whenReplaceShown(replaceAll));
+
+	scope.register([], 'Escape', () => {
+		// 返回 true：不拦截，事件照常传给编辑器里的 Vim。
+		if (view.hasFocus && vimWantsEscape(view)) return true;
+		view.dispatch({effects: closeSearch.of(null)});
+		view.focus();
+		return false;
+	});
 
 	return scope;
 }
