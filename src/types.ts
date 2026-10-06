@@ -24,13 +24,6 @@ export interface VimEditorView {
 	};
 }
 
-/** Obsidian's App exposes an internal `commands` registry. */
-export interface ObsidianApp {
-	commands?: {
-		commands?: Record<string, unknown>;
-	};
-}
-
 export interface SearchQuery {
 	searchTerm: string;
 	replaceTerm: string;

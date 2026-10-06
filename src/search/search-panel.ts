@@ -23,7 +23,8 @@ function createToggleButton(container: HTMLElement, icon: string, cls: string, t
 }
 
 function createSearchPanel(app: App, view: EditorView): Panel {
-	const dom = document.createElement('div');
+	// 从编辑器所在的文档创建，兼容弹出窗口（popout window）。
+	const dom = view.dom.ownerDocument.createElement('div');
 	dom.className = 'vss-search-panel';
 
 	let searchState: SearchState = view.state.field(searchStateField);
@@ -105,9 +106,14 @@ function createSearchPanel(app: App, view: EditorView): Panel {
 		}
 	};
 
+	// 输入框为空时隐藏清空按钮（占位保留，避免其他按钮跳动）。
+	const syncClearButtons = () => {
+		findClearBtn.toggleClass('vss-invisible', !searchInput.value);
+		replaceClearBtn.toggleClass('vss-invisible', !replaceInput.value);
+	};
+
 	updateMatchCount();
-	findClearBtn.style.visibility = searchInput.value ? 'visible' : 'hidden';
-	replaceClearBtn.style.visibility = replaceInput.value ? 'visible' : 'hidden';
+	syncClearButtons();
 
 	// 避免点击清空按钮导致输入框失焦
 	findClearBtn.addEventListener('mousedown', (e) => e.preventDefault());
@@ -124,9 +130,7 @@ function createSearchPanel(app: App, view: EditorView): Panel {
 	});
 
 	searchInput.addEventListener('input', () => updateQuery({searchTerm: searchInput.value}));
-	searchInput.addEventListener('input', () => {
-		findClearBtn.style.visibility = searchInput.value ? 'visible' : 'hidden';
-	});
+	searchInput.addEventListener('input', syncClearButtons);
 	searchInput.addEventListener('keydown', (e) => {
 		if (e.key === 'Enter') {
 			e.preventDefault();
@@ -142,9 +146,7 @@ function createSearchPanel(app: App, view: EditorView): Panel {
 	});
 
 	replaceInput.addEventListener('input', () => updateQuery({replaceTerm: replaceInput.value}));
-	replaceInput.addEventListener('input', () => {
-		replaceClearBtn.style.visibility = replaceInput.value ? 'visible' : 'hidden';
-	});
+	replaceInput.addEventListener('input', syncClearButtons);
 	replaceInput.addEventListener('keydown', (e) => {
 		if (e.key === 'Escape') {
 			e.preventDefault();
@@ -188,12 +190,11 @@ function createSearchPanel(app: App, view: EditorView): Panel {
 				}
 				if (searchInput.value !== newState.query.searchTerm) {
 					searchInput.value = newState.query.searchTerm;
-					findClearBtn.style.visibility = searchInput.value ? 'visible' : 'hidden';
 				}
 				if (replaceInput.value !== newState.query.replaceTerm) {
 					replaceInput.value = newState.query.replaceTerm;
-					replaceClearBtn.style.visibility = replaceInput.value ? 'visible' : 'hidden';
 				}
+				syncClearButtons();
 				caseSensitiveBtn.classList.toggle('active', newState.query.caseSensitive);
 				wholeWordBtn.classList.toggle('active', newState.query.wholeWord);
 				regexBtn.classList.toggle('active', newState.query.useRegex);

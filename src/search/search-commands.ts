@@ -4,14 +4,11 @@ import {EditorView} from '@codemirror/view';
 import {togglePanel, setSearchQuery, searchStateField} from './search-state';
 import {forgetReadingViewSwitch, getReadingViewSelection, switchToEditingView} from './reading-view';
 import {goToNext, goToPrev, revealMatch, SearchOption, toggleOption} from './search-actions';
-import {ObsidianEditor, ObsidianApp} from '../types';
+import {ObsidianEditor} from '../types';
 
 async function openSearchPanel(plugin: Plugin, showReplace: boolean) {
 	const activeView = plugin.app.workspace.getActiveViewOfType(MarkdownView);
-	if (!activeView) {
-		console.error('VSCode Search: 没有活动的 Markdown 视图');
-		return;
-	}
+	if (!activeView) return;
 
 	const editor = activeView.editor;
 	const cmView = (editor as ObsidianEditor).cm;
@@ -39,7 +36,7 @@ async function openSearchPanel(plugin: Plugin, showReplace: boolean) {
 
 		cmView.dispatch({effects});
 	} else {
-		console.error('VSCode Search: 未找到 CodeMirror view');
+		console.error('VSCode Search: CodeMirror view not found');
 	}
 }
 
@@ -139,16 +136,5 @@ export function registerSearchCommands(plugin: Plugin) {
 				return true;
 			}
 		});
-	}
-
-	// 额外校验：打印当前已注册的命令 key（方便确认 Obsidian 是否真正收到了命令）。
-	try {
-		const commands = (plugin.app as ObsidianApp)?.commands?.commands;
-		if (commands && typeof commands === 'object') {
-			const keys = Object.keys(commands).filter((k) => k.startsWith(`${plugin.manifest.id}:`));
-			console.debug('VSCode Search: 已注册命令 keys =', keys);
-		}
-	} catch (e) {
-		console.error('VSCode Search: 打印已注册命令 keys 失败', e);
 	}
 }

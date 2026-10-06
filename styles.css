@@ -43,6 +43,10 @@
 	display: none !important;
 }
 
+.vss-search-panel .vss-invisible {
+	visibility: hidden;
+}
+
 /* ---------- 输入框：边框画在外层，按钮与文字并排，长文本不会被按钮盖住 ---------- */
 
 .vss-input-box {
@@ -171,11 +175,13 @@
 
 /* ---------- 正文中的匹配高亮 ---------- */
 
+/* 颜色取自主题：普通匹配用主题高亮色，当前匹配用强调色并描边 */
 .cm-line .vss-highlight {
-	background-color: rgba(255, 203, 0, 0.4);
+	background-color: rgba(var(--text-highlight-bg-rgb), 0.35);
 }
 
 .cm-line .vss-highlight-active {
-	background-color: rgba(255, 153, 0, 0.7);
-	outline: 1px solid rgba(255, 128, 0, 0.9);
+	background-color: hsla(var(--interactive-accent-hsl), 0.4);
+	outline: 1px solid var(--interactive-accent);
+	border-radius: 2px;
 }
