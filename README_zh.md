@@ -68,6 +68,8 @@ npm run build   # 类型检查 + 生产构建
 npm run lint
 ```
 
+Release 由 GitHub Actions 构建并附带构建来源证明（attestation）：用 `npm version x.y.z` 升版本号，再 `git push --follow-tags`。
+
 ## 许可
 
-Apache-2.0。本项目是 Enhanced search and replace 的修改版，见 [LICENSE](LICENSE)。
+Apache-2.0。本项目是 Enhanced search and replace 的修改版，见 [LICENSE](LICENSE) 和 [NOTICE](NOTICE)。

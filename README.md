@@ -68,6 +68,8 @@ npm run build   # type check + production build
 npm run lint
 ```
 
+Releases are built by GitHub Actions with build provenance attestations. Bump the version with `npm version x.y.z`, then `git push --follow-tags`.
+
 ## License
 
-Apache-2.0. This project is a modified version of Enhanced search and replace; see [LICENSE](LICENSE).
+Apache-2.0. This project is a modified version of Enhanced search and replace; see [LICENSE](LICENSE) and [NOTICE](NOTICE).
