@@ -3,6 +3,7 @@ import {closeSearch, searchExtension, searchStateField} from './search/search-st
 import {createSearchPanelExtension} from './search/search-panel';
 import {registerSearchCommands} from './search/search-commands';
 import {restoreReadingViewOnClose} from './search/reading-view';
+import {registerReadingSearch} from './search/reading-search';
 import {ObsidianEditor} from './types';
 
 export default class VSCodeSearchPlugin extends Plugin {
@@ -12,6 +13,7 @@ export default class VSCodeSearchPlugin extends Plugin {
 		this.registerEditorExtension([searchExtension(), createSearchPanelExtension(this.app), restoreReadingViewOnClose]);
 
 		registerSearchCommands(this);
+		registerReadingSearch(this);
 
 		this.registerDomEvent(document, 'keydown', (evt: KeyboardEvent) => {
 			// 全局 Esc：只要面板是打开状态，就关闭（即使搜索框不在焦点）

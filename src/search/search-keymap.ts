@@ -1,15 +1,16 @@
 import {App, KeymapEventListener, Modifier, Platform, Scope} from 'obsidian';
-import {EditorView} from '@codemirror/view';
-import {goToNext, goToPrev, replaceAll, replaceCurrent, toggleOption} from './search-actions';
-import {closeSearch, searchStateField} from './search-state';
-import {VimEditorView} from '../types';
+import {SearchOption} from './search-actions';
 
-/** Vim 处于插入/可视模式，或有未完成的按键序列时，Esc 应该交给 Vim 处理。 */
-function vimWantsEscape(view: EditorView): boolean {
-	const vim = (view as VimEditorView).cm?.state?.vim;
-	if (!vim) return false;
-	const pending = Boolean(vim.inputState?.operator) || (vim.inputState?.keyBuffer?.length ?? 0) > 0;
-	return Boolean(vim.insertMode || vim.visualMode) || pending;
+/** 快捷键对应的操作，由编辑视图 / 阅读视图分别实现。 */
+export interface SearchKeymapActions {
+	next(): void;
+	prev(): void;
+	toggleOption(option: SearchOption): void;
+	/** 不提供则不注册替换快捷键（例如阅读视图）。 */
+	replaceCurrent?(): void;
+	replaceAll?(): void;
+	/** 返回 false 表示不处理，让按键继续传给编辑器（例如 Vim 插入模式下的 Esc）。 */
+	close(): boolean;
 }
 
 /**
@@ -19,15 +20,15 @@ function vimWantsEscape(view: EditorView): boolean {
  * - 区分大小写：Alt+Cmd+C（Alt+C）
  * - 全词匹配：Alt+Cmd+W（Alt+W）
  * - 正则表达式：Alt+Cmd+R（Alt+R）
- * - 替换当前：Shift+Cmd+1（Shift+Ctrl+1），仅在显示替换行时生效
- * - 全部替换：Alt+Cmd+Enter（Alt+Ctrl+Enter），仅在显示替换行时生效
- * - 关闭：Escape。焦点在正文且 Vim 处于插入/可视模式时，Esc 先交给 Vim（与 VSCodeVim 一致）
+ * - 替换当前：Shift+Cmd+1（Shift+Ctrl+1）
+ * - 全部替换：Alt+Cmd+Enter（Alt+Ctrl+Enter）
+ * - 关闭：Escape
  *
  * Obsidian 在 window 的 capture 阶段处理快捷键，普通的 keydown 监听抢不过全局快捷键
- * （例如 Mod+G 默认是「打开关系图谱」），所以这里用 Scope：只在焦点位于该编辑器
- * （含搜索面板）时压入 keymap 栈，焦点离开即弹出，不影响其他地方的全局快捷键。
+ * （例如 Mod+G 默认是「打开关系图谱」），所以这里用 Scope：只在焦点位于 focusRoot
+ * （编辑器或阅读视图，含浮窗）内时压入 keymap 栈，焦点离开即弹出，不影响其他地方的全局快捷键。
  */
-function createSearchScope(app: App, view: EditorView): Scope {
+function createSearchScope(app: App, actions: SearchKeymapActions): Scope {
 	const scope = new Scope(app.scope);
 	const bind = (modifiers: Modifier[], key: string, action: () => void) => {
 		const listener: KeymapEventListener = () => {
@@ -36,42 +37,34 @@ function createSearchScope(app: App, view: EditorView): Scope {
 		};
 		scope.register(modifiers, key, listener);
 	};
-	const whenReplaceShown = (action: (view: EditorView) => void) => () => {
-		if (view.state.field(searchStateField).showReplace) action(view);
-	};
 
 	if (Platform.isMacOS) {
-		bind(['Mod'], 'G', () => goToNext(view));
-		bind(['Mod', 'Shift'], 'G', () => goToPrev(view));
+		bind(['Mod'], 'G', () => actions.next());
+		bind(['Mod', 'Shift'], 'G', () => actions.prev());
 	}
-	bind([], 'F3', () => goToNext(view));
-	bind(['Shift'], 'F3', () => goToPrev(view));
+	bind([], 'F3', () => actions.next());
+	bind(['Shift'], 'F3', () => actions.prev());
 
 	const toggleModifiers: Modifier[] = Platform.isMacOS ? ['Mod', 'Alt'] : ['Alt'];
-	bind(toggleModifiers, 'C', () => toggleOption(view, 'caseSensitive'));
-	bind(toggleModifiers, 'W', () => toggleOption(view, 'wholeWord'));
-	bind(toggleModifiers, 'R', () => toggleOption(view, 'useRegex'));
+	bind(toggleModifiers, 'C', () => actions.toggleOption('caseSensitive'));
+	bind(toggleModifiers, 'W', () => actions.toggleOption('wholeWord'));
+	bind(toggleModifiers, 'R', () => actions.toggleOption('useRegex'));
 
-	bind(['Mod', 'Shift'], '1', whenReplaceShown(replaceCurrent));
-	bind(['Mod', 'Alt'], 'Enter', whenReplaceShown(replaceAll));
+	if (actions.replaceCurrent) bind(['Mod', 'Shift'], '1', () => actions.replaceCurrent?.());
+	if (actions.replaceAll) bind(['Mod', 'Alt'], 'Enter', () => actions.replaceAll?.());
 
-	scope.register([], 'Escape', () => {
-		// 返回 true：不拦截，事件照常传给编辑器里的 Vim。
-		if (view.hasFocus && vimWantsEscape(view)) return true;
-		view.dispatch({effects: closeSearch.of(null)});
-		view.focus();
-		return false;
-	});
+	// 返回 true：不拦截，事件照常传给编辑器（例如 Vim）。
+	scope.register([], 'Escape', () => (actions.close() ? false : true));
 
 	return scope;
 }
 
 /**
- * 面板打开期间，跟随焦点启用/停用快捷键 Scope。
- * 返回清理函数，在面板销毁时调用。
+ * 浮窗打开期间，跟随焦点启用/停用快捷键 Scope。
+ * 返回清理函数，在浮窗关闭时调用。
  */
-export function attachSearchKeymap(app: App, view: EditorView): () => void {
-	const scope = createSearchScope(app, view);
+export function attachSearchKeymap(app: App, focusRoot: HTMLElement, actions: SearchKeymapActions): () => void {
+	const scope = createSearchScope(app, actions);
 	let active = false;
 
 	const activate = () => {
@@ -85,19 +78,19 @@ export function attachSearchKeymap(app: App, view: EditorView): () => void {
 		active = false;
 	};
 	const onFocusOut = (evt: FocusEvent) => {
-		// 焦点只是在编辑器和搜索面板之间移动时，保持启用。
+		// 焦点只是在 focusRoot 内部移动（例如正文与浮窗之间）时，保持启用。
 		const next = evt.relatedTarget as Node | null;
-		if (next && view.dom.contains(next)) return;
+		if (next && focusRoot.contains(next)) return;
 		deactivate();
 	};
 
-	view.dom.addEventListener('focusin', activate);
-	view.dom.addEventListener('focusout', onFocusOut);
-	if (view.dom.contains(view.dom.doc.activeElement)) activate();
+	focusRoot.addEventListener('focusin', activate);
+	focusRoot.addEventListener('focusout', onFocusOut);
+	if (focusRoot.contains(focusRoot.doc.activeElement)) activate();
 
 	return () => {
-		view.dom.removeEventListener('focusin', activate);
-		view.dom.removeEventListener('focusout', onFocusOut);
+		focusRoot.removeEventListener('focusin', activate);
+		focusRoot.removeEventListener('focusout', onFocusOut);
 		deactivate();
 	};
 }

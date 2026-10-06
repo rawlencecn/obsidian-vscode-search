@@ -15,7 +15,7 @@ Based on [Enhanced search and replace](https://github.com/liuhaoxd/obsidian-enha
 - Collapsible replace row (the chevron on the left), with replace and replace all.
 - Highlights all matches and shows `n of total`.
 - **VS Code keybindings** while the editor or the widget is focused (see below).
-- **Works in reading view**: the note switches to editing view while the widget is open and switches back when it closes. Text selected in reading view pre-fills the search box.
+- **Works in reading view** without switching modes: matches are highlighted on the rendered page, with the same toggles and keybindings. Reading view is find only: **Find and replace** (or the chevron) switches the note to editing view and back when the widget closes. Text selected in reading view pre-fills the search box.
 - Vim mode aware: `Esc` in insert or visual mode goes to Vim first; `Esc` in normal mode closes the widget.
 
 ## Commands

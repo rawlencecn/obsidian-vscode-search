@@ -20,6 +20,15 @@
 	font-size: var(--font-ui-small);
 }
 
+/* 阅读视图：浮窗挂在 .markdown-reading-view 上（它本身是 static），需要作为定位参照 */
+.markdown-reading-view.vss-reading-host {
+	position: relative;
+}
+
+.markdown-reading-view.vss-reading-host > .vss-search-panel {
+	z-index: 10;
+}
+
 /* 浮窗挂载时给 panel 容器加上 vss-panels-host，去掉 CodeMirror 自带的下边框（容器高度为 0，否则会在编辑器顶部留一条线） */
 .cm-panels.cm-panels-top.vss-panels-host {
 	border-bottom: none;
