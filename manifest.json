@@ -1,7 +1,7 @@
 {
 	"id": "vscode-search",
 	"name": "VSCode Search",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"minAppVersion": "1.12.7",
 	"description": "VS Code style find and replace widget for the editor: floating, match case, whole word and regex, VS Code keybindings, works in reading view.",
 	"author": "rawlencecn",

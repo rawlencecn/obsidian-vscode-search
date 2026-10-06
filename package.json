@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-vscode-search",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "VS Code style find and replace widget for Obsidian.",
 	"main": "main.js",
 	"type": "module",
@@ -10,7 +10,13 @@
 		"version": "node version-bump.mjs && git add manifest.json versions.json",
 		"lint": "eslint ."
 	},
-	"keywords": ["obsidian", "plugin", "search", "replace", "codemirror"],
+	"keywords": [
+		"obsidian",
+		"plugin",
+		"search",
+		"replace",
+		"codemirror"
+	],
 	"license": "Apache-2.0",
 	"devDependencies": {
 		"@eslint/js": "9.30.1",
