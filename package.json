@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-vscode-search",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"description": "VS Code style find and replace widget for Obsidian.",
 	"main": "main.js",
 	"type": "module",
