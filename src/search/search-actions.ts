@@ -29,13 +29,22 @@ export function goToPrev(view: EditorView) {
 	revealMatch(view, (state.currentMatchIndex - 1 + state.matches.length) % state.matches.length);
 }
 
+function expandEscapes(rText: string, enabled: boolean = true): string {
+	return enabled
+		? rText.replace(/\\([\\nt])/g, (_match, escaped: string) =>
+				escaped === 'n' ? '\n' : escaped === 't' ? '\t' : '\\'
+			)
+		: rText;
+}
+
 export function replaceCurrent(view: EditorView) {
 	const state = view.state.field(searchStateField);
 	const match = state.matches[state.currentMatchIndex];
 	if (!match) return;
 
 	const currentIndex = state.currentMatchIndex;
-	view.dispatch({changes: {from: match.from, to: match.to, insert: state.query.replaceTerm}});
+	const replacement = expandEscapes(state.query.replaceTerm);
+	view.dispatch({changes: {from: match.from, to: match.to, insert: replacement}});
 
 	// 替换会触发 matches 重算；此时“下一个匹配”通常会落在原 index 位置。
 	const newState = view.state.field(searchStateField);
